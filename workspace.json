@@ -1,0 +1,8 @@
+{
+  "projects": {},
+  "dependencies": {
+    "required": [],
+    "development": ["@nrwl/cli", "@nrwl/workspace", "nx", "typescript"]
+  },
+  "version": 2
+}

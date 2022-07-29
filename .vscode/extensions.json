@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "nrwl.angular-console",
+    "esbenp.prettier-vscode",
+    "magicstack.edgedb",
+    "timonwong.shellcheck",
+    "tamasfe.even-better-toml"
+  ]
+}
