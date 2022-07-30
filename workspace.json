@@ -2,7 +2,13 @@
   "projects": {},
   "dependencies": {
     "required": [],
-    "development": ["@nrwl/cli", "@nrwl/workspace", "nx", "typescript"]
+    "development": [
+      "@nrwl/cli",
+      "@nrwl/workspace",
+      "@nxrs/cargo",
+      "nx",
+      "typescript"
+    ]
   },
   "version": 2
 }
