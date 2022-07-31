@@ -1,0 +1,12 @@
+[package]
+name = "athalar_core"
+description = "The athalar core used to create langauge bindings"
+repository = "https://github.com/IgnisDa/athalar"
+readme = "README.md"
+version = "0.0.1"
+edition = "2021"
+license-file = "../../LICENSE.txt"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]

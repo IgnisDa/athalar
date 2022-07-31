@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "athalar_core": "libs/athalar-core"
+  },
   "dependencies": {
     "required": [],
     "development": [
