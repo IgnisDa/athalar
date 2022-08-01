@@ -1,4 +1,3 @@
-use educe::Educe;
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, str::FromStr};
 use validator::{Validate, ValidationError, ValidationErrors};
@@ -21,7 +20,7 @@ fn get_version_and_source_errors(errs: ValidationErrors) -> (Option<String>, Opt
 
 /// The container for validation errors when creating [AthalarConfig]
 #[derive(Debug, PartialEq)]
-struct AthalarConfigValidationError {
+pub struct AthalarConfigValidationError {
     /// version related errors
     version: Option<String>,
     /// source related errors
@@ -30,23 +29,35 @@ struct AthalarConfigValidationError {
 
 /// The different errors raised when creating [AthalarConfig]
 #[derive(Debug, PartialEq)]
-enum AthalarConfigError {
+pub enum AthalarConfigError {
     ParseError,
     ValidationError(AthalarConfigValidationError),
 }
 
 /// The container for configuring the Athalar instance
-#[derive(Educe, Serialize, Debug, Deserialize, PartialEq, Validate)]
-#[educe(Default)]
-struct AthalarConfig {
-    /// The version of schema to use
+#[derive(Serialize, Debug, Deserialize, PartialEq, Validate)]
+pub struct AthalarConfig {
     #[validate(range(min = 1, max = 1, message = "Version can only be 1"))]
     version: u8,
-    /// The directory in which the source configuration will be found, relative to current directory
-    #[educe(Default(expression = "Some(PathBuf::from(\"src\"))"))]
     source: Option<PathBuf>,
-    /// The directory relative to `source` where partials will be found
     partials: Option<PathBuf>,
+}
+
+impl AthalarConfig {
+    /// The version of schema to use for this project
+    pub fn version(&self) -> u8 {
+        self.version
+    }
+
+    /// The directory in which the source configuration will be found, relative to current directory
+    pub fn source(&self) -> &PathBuf {
+        self.source.as_ref().unwrap()
+    }
+
+    /// The directory relative to `source` where partials will be found
+    pub fn partials(&self) -> &PathBuf {
+        self.partials.as_ref().unwrap()
+    }
 }
 
 impl FromStr for AthalarConfig {
@@ -81,12 +92,6 @@ mod test {
     use super::*;
 
     #[test]
-    fn correct_default_source() {
-        let ac = AthalarConfig::default();
-        assert_eq!(ac.source.unwrap(), PathBuf::from("src"));
-    }
-
-    #[test]
     fn parses_correct_toml() {
         let s = r#"
         version = 1
@@ -98,13 +103,30 @@ mod test {
     }
 
     #[test]
+    fn accessors_return_correct_values() {
+        let s = r#"
+        version = 1
+        source  = "other_source"
+        "#;
+        let ac = AthalarConfig::from_str(s).unwrap();
+        assert_eq!(ac.source(), &PathBuf::from("other_source"));
+        assert_eq!(
+            ac.partials(),
+            &PathBuf::from("other_source").join("partials")
+        );
+    }
+
+    #[test]
     fn gets_correct_value_of_partials() {
         let s = r#"
         version = 1
         partials  = "some_dir"
         "#;
         let ac = AthalarConfig::from_str(s);
-        assert_eq!(ac.unwrap().partials.unwrap(), PathBuf::from("src/some_dir"));
+        assert_eq!(
+            ac.unwrap().partials(),
+            &PathBuf::from("src").join("some_dir")
+        );
     }
 
     #[test]
