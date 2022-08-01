@@ -34,13 +34,14 @@ pub enum AthalarConfigError {
     ValidationError(AthalarConfigValidationError),
 }
 
-/// The container for configuring the Athalar instance
+/// The container for configuring the Athalar instance.
 #[derive(Serialize, Debug, Deserialize, PartialEq, Validate)]
 pub struct AthalarConfig {
     #[validate(range(min = 1, max = 1, message = "Version can only be 1"))]
     version: u8,
     source: Option<PathBuf>,
     partials: Option<PathBuf>,
+    generators: Option<PathBuf>,
 }
 
 impl AthalarConfig {
@@ -54,9 +55,16 @@ impl AthalarConfig {
         self.source.as_ref().unwrap()
     }
 
-    /// The directory relative to `source` where partials will be found
+    // This is a `config dir`
+    /// The directory where partials will be found. It contains [Self::source] inside it.
     pub fn partials(&self) -> &PathBuf {
         self.partials.as_ref().unwrap()
+    }
+
+    // This is a `config dir`
+    /// The directory where generators will be found. It contains [Self::source] inside it.
+    pub fn generators(&self) -> &PathBuf {
+        self.generators.as_ref().unwrap()
     }
 }
 
@@ -68,8 +76,12 @@ impl FromStr for AthalarConfig {
             Ok(mut x) => {
                 x.source = x.source.or_else(|| Some(PathBuf::from("src")));
                 x.partials = match x.partials {
-                    Some(p) => Some(x.source.clone().unwrap().join(p)),
+                    Some(ref p) => Some(x.source.clone().unwrap().join(p)),
                     None => Some(x.source.clone().unwrap().join("partials")),
+                };
+                x.generators = match x.generators {
+                    Some(ref p) => Some(x.source.clone().unwrap().join(p)),
+                    None => Some(x.source.clone().unwrap().join("generators")),
                 };
                 x
             }
@@ -117,6 +129,14 @@ mod test {
     }
 
     #[test]
+    fn gets_correct_value_of_config_dirs() {
+        let s = "version = 1";
+        let ac = AthalarConfig::from_str(s).unwrap();
+        assert_eq!(ac.partials(), &PathBuf::from("src").join("partials"));
+        assert_eq!(ac.generators(), &PathBuf::from("src").join("generators"));
+    }
+
+    #[test]
     fn gets_correct_value_of_partials() {
         let s = r#"
         version = 1
@@ -126,6 +146,19 @@ mod test {
         assert_eq!(
             ac.unwrap().partials(),
             &PathBuf::from("src").join("some_dir")
+        );
+    }
+
+    #[test]
+    fn gets_correct_value_of_generators() {
+        let s = r#"
+        version = 1
+        generators  = "some_gen"
+        "#;
+        let ac = AthalarConfig::from_str(s);
+        assert_eq!(
+            ac.unwrap().generators(),
+            &PathBuf::from("src").join("some_gen")
         );
     }
 

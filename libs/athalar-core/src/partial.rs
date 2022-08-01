@@ -1,4 +1,4 @@
-use crate::{config_atom::AthalarConfigAtom, AthalarConfigKind};
+use crate::{atom::AthalarAtom, AthalarConfigKind};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, str::FromStr};
 
@@ -9,6 +9,7 @@ enum AthalarPartialError {
     KindError,
 }
 
+/// Contains information about a discovered partial in the project.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct AthalarPartial {
     /// The path to this partial relative to the current directory
@@ -27,9 +28,9 @@ impl AthalarPartial {
 struct AthalarPartialData {
     /// The type of partial
     #[serde(default = "AthalarConfigKind::variable")]
-    kind: AthalarConfigKind,
+    pub kind: AthalarConfigKind,
     /// The actual data in the file
-    config: Vec<AthalarConfigAtom>,
+    pub config: Vec<AthalarAtom>,
 }
 
 impl FromStr for AthalarPartialData {
@@ -37,7 +38,7 @@ impl FromStr for AthalarPartialData {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let apd = serde_yaml::from_str::<Self>(s).map_err(|_| AthalarPartialError::ParseError)?;
-        if matches!(apd.kind, AthalarConfigKind::Generator) {
+        if !matches!(apd.kind, AthalarConfigKind::Variable) {
             return Err(AthalarPartialError::KindError);
         }
         Ok(apd)
@@ -61,6 +62,17 @@ mod test {
     }
 
     #[test]
+    fn no_validators() {
+        let s = r#"
+        config:
+          - name: MAIL_PORT
+        "#;
+        let apd = AthalarPartialData::from_str(s).unwrap();
+        assert_eq!(apd.config.len(), 1);
+        assert_eq!(apd.config[0].validators.len(), 0);
+    }
+
+    #[test]
     fn specifying_kind_as_variable_sets_correct_value() {
         let s = r#"
         kind: !Variable
@@ -73,7 +85,7 @@ mod test {
 
     #[test]
     #[should_panic]
-    fn specifying_generator_kind_throws_error() {
+    fn specifying_generator_kind_should_panic() {
         let s = r#"
         kind: !Generator
         config:
