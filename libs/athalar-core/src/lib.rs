@@ -1,4 +1,5 @@
 mod atom;
+mod binding;
 mod config;
 mod generator;
 mod partial;
