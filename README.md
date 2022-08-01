@@ -10,7 +10,7 @@ bindings specific to your requirements.
 Lets consider the following mappings:
 
 ```yaml
-# ./backend.yaml
+# ./backend.ath.yaml
 bindings:
   - typescript:
       output: ./some/path/backend.ts
@@ -25,7 +25,7 @@ variables:
 ```
 
 ```yaml
-# ./partials/mail.yaml
+# ./partials/mail.ath.yaml
 MAIL_PORT:
   description: The port at which the mail server is listening at
   validators:
