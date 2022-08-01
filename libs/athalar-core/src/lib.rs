@@ -7,7 +7,6 @@ mod partial;
 use config::AthalarConfig;
 use generator::AthalarGenerator;
 use partial::AthalarPartial;
-use serde::{Deserialize, Serialize};
 
 /// The root instance that manipulates and stores data about an Athalar project.
 #[derive(Debug, PartialEq)]
@@ -22,8 +21,8 @@ pub struct Athalar {
     pub generators: Vec<AthalarGenerator>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-enum AthalarConfigKind {
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum AthalarConfigKind {
     Variable,
 }
 

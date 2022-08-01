@@ -1,44 +1,33 @@
-use serde::{Deserialize, Serialize};
-use std::{path::PathBuf, str::FromStr};
-
-#[derive(Debug, PartialEq)]
-enum AthalarGeneratorError {
-    ParseError,
-}
+use derive_builder::Builder;
+use std::path::PathBuf;
 
 /// Contains information about a discovered generator in the project.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Builder)]
 pub struct AthalarGenerator {
     /// The path to this partial relative to the current directory
-    #[serde(default)]
-    source: Option<PathBuf>,
+    source: PathBuf,
+
+    /// The actual data that is in this generator file
+    data: AthalarGeneratorContent,
 }
 
 impl AthalarGenerator {
     /// The directory in which this partial will be found, relative to partial directory
     pub fn source(&self) -> &PathBuf {
-        self.source.as_ref().unwrap()
+        &self.source
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-enum AthalarGeneratorContent {
+#[derive(Debug, PartialEq, Clone)]
+pub enum AthalarGeneratorContent {
     IncludePartial(String),
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Builder)]
 struct AthalarGeneratorData {
     /// The actual data in the file
+    #[builder(setter(into, strip_option), default)]
     config: Vec<AthalarGeneratorContent>,
-}
-
-impl FromStr for AthalarGeneratorData {
-    type Err = AthalarGeneratorError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let apd = serde_yaml::from_str::<Self>(s).map_err(|_| AthalarGeneratorError::ParseError)?;
-        Ok(apd)
-    }
 }
 
 #[cfg(test)]
@@ -47,37 +36,27 @@ mod test {
 
     #[test]
     fn empty_config_should_have_correct_length() {
-        let s = "config: []";
-        let agd = AthalarGeneratorData::from_str(s).unwrap();
+        let agd = AthalarGeneratorDataBuilder::default().build().unwrap();
         assert_eq!(agd.config.len(), 0);
     }
 
     #[test]
     fn config_should_have_correct_length() {
-        let s = r#"
-        config:
-          - !IncludePartial mail
-        "#;
-        let agd = AthalarGeneratorData::from_str(s).unwrap();
+        let agd = AthalarGeneratorDataBuilder::default()
+            .config(vec![AthalarGeneratorContent::IncludePartial("mail".into())])
+            .build()
+            .unwrap();
         assert_eq!(agd.config.len(), 1);
     }
 
     #[test]
     fn config_should_have_correct_value_inside_include_partial() {
-        let s = r#"
-        config:
-          - !IncludePartial mail
-        "#;
-        let agd = AthalarGeneratorData::from_str(s).unwrap();
+        let agd = AthalarGeneratorDataBuilder::default()
+            .config(vec![AthalarGeneratorContent::IncludePartial("mail".into())])
+            .build()
+            .unwrap();
         match agd.config.get(0).unwrap() {
             AthalarGeneratorContent::IncludePartial(x) => assert_eq!(x, "mail"),
         }
-    }
-
-    #[test]
-    fn no_config_key_should_return_parse_error() {
-        let s = "";
-        let agd = AthalarGeneratorData::from_str(s);
-        assert_eq!(agd, Err(AthalarGeneratorError::ParseError));
     }
 }

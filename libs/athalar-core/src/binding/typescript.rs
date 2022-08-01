@@ -1,11 +1,10 @@
 use super::profile::AthalarProfile;
-use serde::{Deserialize, Serialize};
 
 /// Each typescript adapter must implement this trait.
 pub trait TypescriptAdapterProfile {}
 
 /// The different adapter that can be used to generate different schemas.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub enum TypescriptAdapter {
     ClassValidator,
 }
@@ -17,13 +16,12 @@ struct ClassValidatorAdapterProfile {
 }
 
 /// The settings specific to the typescript bindings.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct TypescriptProfile<T: TypescriptAdapterProfile> {
     /// The adapter for this particular binding
     adapter: TypescriptAdapter,
 
     /// Settings that are specific to this typescript adapter
-    #[serde(flatten)]
     profile: T,
 }
 

@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
+use derive_builder::Builder;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum AtomValidator {
     Number,
     String,
@@ -8,26 +8,40 @@ pub enum AtomValidator {
     Port,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-enum AtomKind {
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum AtomKind {
     Number,
     String,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Builder, Clone, Default)]
 pub struct AthalarAtom {
     /// The name of this configuration variable
     name: String,
 
-    /// the type that the final generated config variable should have
+    #[builder(setter(into, strip_option), default = "None")]
     kind: Option<AtomKind>,
 
     /// The validators that should be applied to this configuration variable
-    #[serde(default)]
+    #[builder(setter(into, strip_option), default)]
     pub validators: Vec<AtomValidator>,
 
     /// An optional description that will get included in the generated code
+    #[builder(setter(into, strip_option), default)]
     description: Option<String>,
+}
+
+impl AthalarAtom {
+    // determine the `kind` either by using the supplied kind, or going through the validators
+    pub fn kind(&self) -> AtomKind {
+        match &self.kind {
+            Some(x) => *x,
+            None => {
+                // iterate through the validators and fallback to String if none is found
+                AtomKind::String
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -36,21 +50,20 @@ mod test {
 
     #[test]
     fn no_validators_in_yaml_yields_validator_of_zero_len() {
-        let s = r#"
-        name: MAIL_PORT
-        "#;
-        let aca = serde_yaml::from_str::<AthalarAtom>(s).unwrap();
+        let aca = AthalarAtomBuilder::default()
+            .name("mail".into())
+            .build()
+            .unwrap();
         assert_eq!(aca.validators.len(), 0);
     }
 
     #[test]
     fn correct_number_of_validators() {
-        let s = r#"
-        name: MAIL_PORT
-        validators:
-            - !Port
-        "#;
-        let aca = serde_yaml::from_str::<AthalarAtom>(s).unwrap();
+        let aca = AthalarAtomBuilder::default()
+            .name("mail".into())
+            .validators(vec![AtomValidator::String])
+            .build()
+            .unwrap();
         assert_eq!(aca.validators.len(), 1);
     }
 }
