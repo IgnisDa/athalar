@@ -1,22 +1,4 @@
-use serde::{Deserialize, Serialize};
-use std::{path::PathBuf, str::FromStr};
-use validator::{Validate, ValidationError, ValidationErrors};
-
-fn get_error_message(err: &&Vec<ValidationError>) -> String {
-    err.get(0)
-        .unwrap()
-        .message
-        .clone()
-        .map(|p| p.to_string())
-        .unwrap()
-}
-
-fn get_version_and_source_errors(errs: ValidationErrors) -> (Option<String>, Option<String>) {
-    let field_errors = errs.field_errors();
-    let version = field_errors.get("version").map(get_error_message);
-    let source = field_errors.get("source").map(get_error_message);
-    (version, source)
-}
+use std::path::PathBuf;
 
 /// The container for validation errors when creating [AthalarConfig]
 #[derive(Debug, PartialEq)]
@@ -27,6 +9,11 @@ pub struct AthalarConfigValidationError {
     source: Option<String>,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum AthalarConfigVersion {
+    One = 1,
+}
+
 /// The different errors raised when creating [AthalarConfig]
 #[derive(Debug, PartialEq)]
 pub enum AthalarConfigError {
@@ -35,10 +22,9 @@ pub enum AthalarConfigError {
 }
 
 /// The container for configuring the Athalar instance.
-#[derive(Serialize, Debug, Deserialize, PartialEq, Validate)]
+#[derive(Debug, PartialEq)]
 pub struct AthalarConfig {
-    #[validate(range(min = 1, max = 1, message = "Version can only be 1"))]
-    version: u8,
+    version: AthalarConfigVersion,
     source: Option<PathBuf>,
     partials: Option<PathBuf>,
     generators: Option<PathBuf>,
@@ -65,37 +51,6 @@ impl AthalarConfig {
     /// The directory where generators will be found. It contains [Self::source] inside it.
     pub fn generators(&self) -> &PathBuf {
         self.generators.as_ref().unwrap()
-    }
-}
-
-impl FromStr for AthalarConfig {
-    type Err = AthalarConfigError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let ac = match toml::from_str::<Self>(s) {
-            Ok(mut x) => {
-                x.source = x.source.or_else(|| Some(PathBuf::from("src")));
-                x.partials = match x.partials {
-                    Some(ref p) => Some(x.source.clone().unwrap().join(p)),
-                    None => Some(x.source.clone().unwrap().join("partials")),
-                };
-                x.generators = match x.generators {
-                    Some(ref p) => Some(x.source.clone().unwrap().join(p)),
-                    None => Some(x.source.clone().unwrap().join("generators")),
-                };
-                x
-            }
-            Err(_) => return Err(AthalarConfigError::ParseError),
-        };
-        match ac.validate() {
-            Ok(_) => Ok(ac),
-            Err(p) => {
-                let (version, source) = get_version_and_source_errors(p);
-                Err(AthalarConfigError::ValidationError(
-                    AthalarConfigValidationError { version, source },
-                ))
-            }
-        }
     }
 }
 
