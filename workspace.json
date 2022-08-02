@@ -5,9 +5,9 @@
   "dependencies": {
     "required": [],
     "development": [
+      "@ignisda/nx-rust",
       "@nrwl/cli",
       "@nrwl/workspace",
-      "@nxrs/cargo",
       "nx",
       "typescript"
     ]
