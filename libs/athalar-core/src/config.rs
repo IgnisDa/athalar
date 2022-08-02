@@ -29,10 +29,22 @@ pub struct AthalarConfig {
     source: PathBuf,
 
     #[builder(default = "PathBuf::from(\"partials\")")]
-    pub partials: PathBuf,
+    partials: PathBuf,
 
     #[builder(default = "PathBuf::from(\"generators\")")]
-    pub generators: PathBuf,
+    generators: PathBuf,
+}
+
+impl AthalarConfig {
+    /// The directory where the partials will be located
+    pub fn partials(&self) -> PathBuf {
+        self.source.join(self.partials.clone())
+    }
+
+    /// The directory where the generators will be located
+    pub fn generators(&self) -> PathBuf {
+        self.source.join(self.generators.clone())
+    }
 }
 
 #[cfg(test)]
@@ -59,6 +71,17 @@ mod test {
             .unwrap();
         assert_eq!(ac.partials, PathBuf::from("partials"));
         assert_eq!(ac.generators, PathBuf::from("generators"));
+    }
+
+    #[test]
+    fn accessors_return_correct_value() {
+        let ac = AthalarConfigBuilder::default()
+            .version(AthalarConfigVersion::One)
+            .source(PathBuf::from("src"))
+            .build()
+            .unwrap();
+        assert_eq!(ac.partials(), PathBuf::from("src").join("partials"));
+        assert_eq!(ac.generators(), PathBuf::from("src").join("generators"));
     }
 
     #[test]

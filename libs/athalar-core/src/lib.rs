@@ -4,7 +4,7 @@ mod config;
 mod generator;
 mod partial;
 
-use config::AthalarConfig;
+pub use config::AthalarConfig;
 use derive_builder::Builder;
 use generator::AthalarGenerator;
 use partial::AthalarPartial;
@@ -21,6 +21,3 @@ pub struct Athalar {
     /// The generators that were discovered in this run
     pub generators: Vec<AthalarGenerator>,
 }
-
-#[cfg(test)]
-mod test {}
