@@ -24,24 +24,11 @@ pub struct AthalarConfig {
 
     source: PathBuf,
 
-    #[builder(default = "self.default_partials()?")]
+    #[builder(default = "PathBuf::from(\"partials\")")]
     pub partials: PathBuf,
 
-    #[builder(default = "self.default_generators()?")]
+    #[builder(default = "PathBuf::from(\"generators\")")]
     pub generators: PathBuf,
-}
-
-impl AthalarConfigBuilder {
-    fn default_partials(&self) -> Result<PathBuf, String> {
-        dbg!(&self.source);
-        let source = self.source.clone().unwrap();
-        Ok(source.join("partials"))
-    }
-
-    fn default_generators(&self) -> Result<PathBuf, String> {
-        let source = self.source.clone().unwrap();
-        Ok(source.join("generators"))
-    }
 }
 
 #[cfg(test)]
@@ -49,7 +36,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn parses_correct_toml() {
+    fn gets_correct_source_and_version() {
         let ac = AthalarConfigBuilder::default()
             .version(AthalarConfigVersion::One)
             .source(PathBuf::from("other_source"))
@@ -66,8 +53,8 @@ mod test {
             .source(PathBuf::from("src"))
             .build()
             .unwrap();
-        assert_eq!(ac.partials, PathBuf::from("src").join("partials"));
-        assert_eq!(ac.generators, PathBuf::from("src").join("generators"));
+        assert_eq!(ac.partials, PathBuf::from("partials"));
+        assert_eq!(ac.generators, PathBuf::from("generators"));
     }
 
     #[test]
