@@ -1,8 +1,9 @@
+use crate::binding::AthalarBinding;
 use derive_builder::Builder;
 use std::path::PathBuf;
 
 /// Contains information about a discovered generator in the project.
-#[derive(Debug, PartialEq, Builder)]
+#[derive(Debug, PartialEq, Builder, Clone)]
 pub struct AthalarGenerator {
     /// The path to this partial relative to the current directory
     source: PathBuf,
@@ -25,6 +26,10 @@ pub enum AthalarGeneratorContent {
 
 #[derive(Debug, PartialEq, Builder)]
 struct AthalarGeneratorData {
+    /// Information about which bindings need to be generated
+    #[builder(setter(into, strip_option), default)]
+    bindings: Vec<AthalarBinding>,
+
     /// The actual data in the file
     #[builder(setter(into, strip_option), default)]
     config: Vec<AthalarGeneratorContent>,
@@ -32,12 +37,21 @@ struct AthalarGeneratorData {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use crate::{
+        binding::{AthalarAdapter, AthalarBindingBuilder, ClassValidatorAdapterProfileBuilder},
+        generator::*,
+    };
 
     #[test]
     fn empty_config_should_have_correct_length() {
         let agd = AthalarGeneratorDataBuilder::default().build().unwrap();
         assert_eq!(agd.config.len(), 0);
+    }
+
+    #[test]
+    fn empty_bindings_should_have_correct_length() {
+        let agd = AthalarGeneratorDataBuilder::default().build().unwrap();
+        assert_eq!(agd.bindings.len(), 0);
     }
 
     #[test]
@@ -47,6 +61,23 @@ mod test {
             .build()
             .unwrap();
         assert_eq!(agd.config.len(), 1);
+    }
+
+    #[test]
+    fn bindings_should_have_correct_length() {
+        let agd = AthalarGeneratorDataBuilder::default()
+            .bindings(vec![AthalarBindingBuilder::default()
+                .output(PathBuf::from("some"))
+                .profile(AthalarAdapter::ClassValidator(
+                    ClassValidatorAdapterProfileBuilder::default()
+                        .build()
+                        .unwrap(),
+                ))
+                .build()
+                .unwrap()])
+            .build()
+            .unwrap();
+        assert_eq!(agd.bindings.len(), 1);
     }
 
     #[test]

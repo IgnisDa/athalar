@@ -1,9 +1,9 @@
-use crate::{atom::AthalarAtom, AthalarConfigKind};
+use crate::{atom::AthalarAtom, config::AthalarConfigKind};
 use derive_builder::Builder;
 use std::path::PathBuf;
 
 /// Contains information about a discovered partial in the project.
-#[derive(Debug, PartialEq, Builder)]
+#[derive(Debug, PartialEq, Builder, Clone)]
 pub struct AthalarPartial {
     /// The path to this partial relative to the current directory
     source: PathBuf,

@@ -2,12 +2,23 @@ use derive_builder::Builder;
 use std::path::PathBuf;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
+pub enum AthalarConfigKind {
+    Variable,
+}
+
+impl AthalarConfigKind {
+    fn variable() -> Self {
+        Self::Variable
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum AthalarConfigVersion {
     One = 1,
 }
 
 /// The container for configuring the Athalar instance.
-#[derive(Debug, PartialEq, Builder)]
+#[derive(Debug, PartialEq, Builder, Clone)]
 pub struct AthalarConfig {
     version: AthalarConfigVersion,
 

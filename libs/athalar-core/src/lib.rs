@@ -5,11 +5,12 @@ mod generator;
 mod partial;
 
 use config::AthalarConfig;
+use derive_builder::Builder;
 use generator::AthalarGenerator;
 use partial::AthalarPartial;
 
 /// The root instance that manipulates and stores data about an Athalar project.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Builder)]
 pub struct Athalar {
     /// The configuration to use for the Athalar instance
     pub config: AthalarConfig,
@@ -19,17 +20,6 @@ pub struct Athalar {
 
     /// The generators that were discovered in this run
     pub generators: Vec<AthalarGenerator>,
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum AthalarConfigKind {
-    Variable,
-}
-
-impl AthalarConfigKind {
-    fn variable() -> Self {
-        Self::Variable
-    }
 }
 
 #[cfg(test)]
