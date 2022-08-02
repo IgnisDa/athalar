@@ -1,4 +1,5 @@
-use derive_builder::Builder;
+use derive_builder::{self, Builder};
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -12,16 +13,19 @@ impl AthalarConfigKind {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum AthalarConfigVersion {
-    One = 1,
+    #[serde(rename = "1")]
+    One,
 }
 
 /// The container for configuring the Athalar instance.
 #[derive(Debug, PartialEq, Builder, Clone)]
+#[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarConfig {
     version: AthalarConfigVersion,
 
+    #[builder(default = "PathBuf::from(\"src\")")]
     source: PathBuf,
 
     #[builder(default = "PathBuf::from(\"partials\")")]
@@ -64,11 +68,18 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn panic_on_no_source() {
-        AthalarConfigBuilder::default()
-            .version(AthalarConfigVersion::One)
-            .build()
-            .unwrap();
+    fn parses_version_from_toml() {
+        let s = r#"version = "1""#;
+        let acb = toml::from_str::<AthalarConfigBuilder>(s).unwrap();
+        let ac = acb.build().unwrap();
+        assert_eq!(ac.version, AthalarConfigVersion::One);
+    }
+
+    #[test]
+    fn parses_source_from_toml() {
+        let s = r#"version = "1""#;
+        let acb = toml::from_str::<AthalarConfigBuilder>(s).unwrap();
+        let ac = acb.build().unwrap();
+        assert_eq!(ac.source, PathBuf::from("src"));
     }
 }
