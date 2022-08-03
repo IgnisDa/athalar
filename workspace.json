@@ -1,13 +1,15 @@
 {
   "projects": {
     "athalar_core": "libs/athalar-core",
-    "config": "apps/config"
+    "config": "apps/config",
+    "generated": "libs/generated"
   },
   "dependencies": {
     "required": [],
     "development": [
       "@ignisda/nx-rust",
       "@nrwl/cli",
+      "@nrwl/js",
       "@nrwl/node",
       "@nrwl/workspace",
       "nx",

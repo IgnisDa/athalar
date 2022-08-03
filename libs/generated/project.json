@@ -1,0 +1,14 @@
+{
+  "sourceRoot": "libs/generated/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/generated/**/*.ts"]
+      }
+    }
+  },
+  "tags": []
+}
