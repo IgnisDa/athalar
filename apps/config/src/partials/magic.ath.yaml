@@ -1,4 +1,4 @@
 config:
   - name: MAGIC_PUB_KEY
     validators:
-      - !IsString
+      - !String
