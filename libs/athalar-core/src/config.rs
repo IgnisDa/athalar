@@ -2,7 +2,7 @@ use derive_builder::{self, Builder};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum AthalarConfigKind {
     Variable,
 }

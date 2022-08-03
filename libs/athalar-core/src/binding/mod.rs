@@ -1,17 +1,18 @@
 mod class_validator;
 
 use class_validator::ClassValidatorAdapterProfile;
-pub use class_validator::ClassValidatorAdapterProfileBuilder;
 use derive_builder::Builder;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum AthalarAdapter {
     ClassValidator(ClassValidatorAdapterProfile),
 }
 
 /// A binding is a set of configuration for a specific language.
-#[derive(Debug, PartialEq, Clone, Builder)]
+#[derive(Debug, PartialEq, Clone, Builder, Serialize, Deserialize)]
+#[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarBinding {
     // The user will declare this path to be relative to `athalar.toml` but we will fully
     // qualify that path while constructing this.
@@ -21,3 +22,5 @@ pub struct AthalarBinding {
     /// The profile to use for this adapter
     pub profile: AthalarAdapter,
 }
+
+pub use class_validator::ClassValidatorAdapterProfileBuilder;

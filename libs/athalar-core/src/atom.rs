@@ -1,6 +1,7 @@
 use derive_builder::Builder;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum AtomValidator {
     Number,
     String,
@@ -8,13 +9,13 @@ pub enum AtomValidator {
     Port,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum AtomKind {
     Number,
     String,
 }
 
-#[derive(Debug, PartialEq, Builder, Clone, Default)]
+#[derive(Debug, PartialEq, Builder, Clone, Default, Serialize, Deserialize)]
 pub struct AthalarAtom {
     /// The name of this configuration variable
     name: String,
@@ -24,10 +25,11 @@ pub struct AthalarAtom {
 
     /// The validators that should be applied to this configuration variable
     #[builder(setter(into, strip_option), default)]
+    #[serde(default)]
     pub validators: Vec<AtomValidator>,
 
     /// An optional description that will get included in the generated code
-    #[builder(setter(into, strip_option), default)]
+    #[builder(setter(into), default)]
     description: Option<String>,
 }
 

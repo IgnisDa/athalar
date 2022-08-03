@@ -1,5 +1,6 @@
 use crate::{atom::AthalarAtom, config::AthalarConfigKind};
 use derive_builder::Builder;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 /// Contains information about a discovered partial in the project.
@@ -20,12 +21,23 @@ impl AthalarPartial {
 }
 
 #[derive(Debug, PartialEq, Builder, Clone)]
+#[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarPartialData {
     /// The type of partial
+    #[builder(default = "AthalarConfigKind::Variable")]
     pub kind: AthalarConfigKind,
     /// The actual data in the file
     #[builder(setter(into, strip_option), default)]
     pub config: Vec<AthalarAtom>,
+}
+
+impl AthalarPartialData {
+    pub fn partial_from_yaml_string(yaml_string: &str) -> Self {
+        serde_yaml::from_str::<AthalarPartialDataBuilder>(yaml_string)
+            .unwrap()
+            .build()
+            .unwrap()
+    }
 }
 
 #[cfg(test)]
@@ -34,17 +46,13 @@ mod test {
 
     #[test]
     fn no_kind_gets_default_value() {
-        let apd = AthalarPartialDataBuilder::default()
-            .kind(AthalarConfigKind::Variable)
-            .build()
-            .unwrap();
+        let apd = AthalarPartialDataBuilder::default().build().unwrap();
         assert_eq!(apd.kind, AthalarConfigKind::Variable);
     }
 
     #[test]
     fn no_validators() {
         let apd = AthalarPartialDataBuilder::default()
-            .kind(AthalarConfigKind::Variable)
             .config(vec![AthalarAtom::default()])
             .build()
             .unwrap();
@@ -55,16 +63,9 @@ mod test {
     #[test]
     fn specifying_kind_as_variable_sets_correct_value() {
         let apd = AthalarPartialDataBuilder::default()
-            .kind(AthalarConfigKind::Variable)
             .config(vec![AthalarAtom::default()])
             .build()
             .unwrap();
         assert_eq!(apd.kind, AthalarConfigKind::Variable);
-    }
-
-    #[test]
-    #[should_panic]
-    fn specifying_generator_kind_should_panic() {
-        AthalarPartialDataBuilder::default().build().unwrap();
     }
 }
