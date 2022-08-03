@@ -1,12 +1,14 @@
 {
   "projects": {
-    "athalar_core": "libs/athalar-core"
+    "athalar_core": "libs/athalar-core",
+    "config": "apps/config"
   },
   "dependencies": {
     "required": [],
     "development": [
       "@ignisda/nx-rust",
       "@nrwl/cli",
+      "@nrwl/node",
       "@nrwl/workspace",
       "nx",
       "typescript"
