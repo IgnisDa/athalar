@@ -10,7 +10,7 @@
       "executor": "@ignisda/nx-rust:clippy",
       "options": {
         "fix": false,
-        "failOnWarnings": true,
+        "failOnWarnings": false,
         "noDeps": true
       }
     }
