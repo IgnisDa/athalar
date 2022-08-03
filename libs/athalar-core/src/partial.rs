@@ -1,4 +1,4 @@
-use crate::{atom::AthalarAtom, config::AthalarConfigKind};
+use crate::{atom::AthalarAtom, config::AthalarConfigKind, utils::get_name_from_path};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -6,11 +6,23 @@ use std::path::PathBuf;
 /// Contains information about a discovered partial in the project.
 #[derive(Debug, PartialEq, Builder, Clone)]
 pub struct AthalarPartial {
+    /// The name of this generator, based on the file name. Can be considered to be it's
+    /// unique identifier.
+    #[builder(default = "self.get_name()?")]
+    name: String,
+
     /// The path to this partial relative to the current directory
     source: PathBuf,
 
     /// The actual data that is in this generator file
     data: AthalarPartialData,
+}
+
+impl AthalarPartialBuilder {
+    fn get_name(&self) -> Result<String, String> {
+        let source = get_name_from_path(&self.source.clone().unwrap());
+        Ok(source)
+    }
 }
 
 impl AthalarPartial {

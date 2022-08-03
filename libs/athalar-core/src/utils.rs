@@ -1,16 +1,30 @@
 //! Common utilities that can be used to work with athalar projects.
 
 use crate::{
-    config::{AthalarConfig, AthalarConfigBuilder},
-    constants::ATHALAR_CONFIG_FILE,
     generator::{AthalarGenerator, AthalarGeneratorBuilder, AthalarGeneratorData},
     partial::{AthalarPartial, AthalarPartialBuilder, AthalarPartialData},
 };
 use glob::glob;
 use std::{
     fs,
-    path::{Path, PathBuf},
+    path::{Path, PathBuf, MAIN_SEPARATOR},
 };
+
+/// Changes path to name, eg: `src/generators/backend.ath.yaml` to `backend`.
+pub fn get_name_from_path(path: &Path) -> String {
+    path.to_str()
+        .unwrap()
+        .to_string()
+        .split(MAIN_SEPARATOR)
+        .collect::<Vec<_>>()
+        .last()
+        .unwrap()
+        .split('.')
+        .collect::<Vec<_>>()
+        .first()
+        .unwrap()
+        .to_string()
+}
 
 fn get_file_source_and_contents(dir: &Path) -> Vec<(PathBuf, String)> {
     let glob_pattern = dir
@@ -56,12 +70,4 @@ pub fn load_generators(dir: &Path) -> Vec<AthalarGenerator> {
                 .unwrap()
         })
         .collect()
-}
-
-/// Load the athalar configuration from the given path
-pub fn load_config(dir: &Path) -> AthalarConfig {
-    let config_path = dir.join(ATHALAR_CONFIG_FILE);
-    let s = fs::read_to_string(config_path).unwrap();
-    let acb = toml::from_str::<AthalarConfigBuilder>(&s).unwrap();
-    acb.build().unwrap()
 }
