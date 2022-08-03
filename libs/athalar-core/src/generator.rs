@@ -1,5 +1,6 @@
 use crate::binding::AthalarBinding;
 use derive_builder::Builder;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 /// Contains information about a discovered generator in the project.
@@ -9,7 +10,7 @@ pub struct AthalarGenerator {
     source: PathBuf,
 
     /// The actual data that is in this generator file
-    data: AthalarGeneratorContent,
+    data: AthalarGeneratorData,
 }
 
 impl AthalarGenerator {
@@ -19,13 +20,14 @@ impl AthalarGenerator {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum AthalarGeneratorContent {
     IncludePartial(String),
 }
 
-#[derive(Debug, PartialEq, Builder)]
-struct AthalarGeneratorData {
+#[derive(Debug, PartialEq, Builder, Clone)]
+#[builder(derive(Debug, Serialize, Deserialize))]
+pub struct AthalarGeneratorData {
     /// Information about which bindings need to be generated
     #[builder(setter(into, strip_option), default)]
     bindings: Vec<AthalarBinding>,
@@ -35,11 +37,20 @@ struct AthalarGeneratorData {
     config: Vec<AthalarGeneratorContent>,
 }
 
+impl AthalarGeneratorData {
+    pub fn partial_from_yaml_string(yaml_string: &str) -> Self {
+        serde_yaml::from_str::<AthalarGeneratorDataBuilder>(yaml_string)
+            .unwrap()
+            .build()
+            .unwrap()
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::{
-        binding::{AthalarAdapter, AthalarBindingBuilder, ClassValidatorAdapterProfileBuilder},
-        generator::*,
+    use super::*;
+    use crate::binding::{
+        AthalarAdapter, AthalarBindingBuilder, ClassValidatorAdapterProfileBuilder,
     };
 
     #[test]

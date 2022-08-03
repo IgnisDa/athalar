@@ -1,10 +1,10 @@
 mod atom;
 mod binding;
-mod config;
+mod constants;
 mod generator;
 mod partial;
 
-pub use config::AthalarConfig;
+use config::AthalarConfig;
 use derive_builder::Builder;
 use generator::AthalarGenerator;
 use partial::AthalarPartial;
@@ -21,3 +21,6 @@ pub struct Athalar {
     /// The generators that were discovered in this run
     pub generators: Vec<AthalarGenerator>,
 }
+
+pub mod config;
+pub mod utils;
