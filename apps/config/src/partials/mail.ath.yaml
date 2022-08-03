@@ -2,7 +2,7 @@ config:
   - name: MAIL_PORT
     description: The port at which the mail server is listening at
     validators:
-      - !IsPort
+      - !Port
   - name: MAIL_HOST
     description: The hostname where the email server is listening at
-    kind: string
+    kind: !String
