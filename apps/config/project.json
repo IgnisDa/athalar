@@ -14,13 +14,5 @@
   "projectType": "application",
   "sourceRoot": "apps/config/src",
   "tags": ["generator"],
-  "targets": {
-    "lint": {
-      "executor": "@nrwl/linter:eslint",
-      "options": {
-        "lintFilePatterns": ["apps/config/**/*.ts"]
-      },
-      "outputs": ["{options.outputFile}"]
-    }
-  }
+  "targets": {}
 }
