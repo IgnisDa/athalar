@@ -1,9 +1,9 @@
-use athalar_core::utils::{load_config, load_generators, load_partials};
-use std::env;
+use athalar_core::{constants::ATHALAR_CONFIG_FILE, Athalar, AthalarConfig};
+use std::{env, fs, str::FromStr};
 
 fn main() {
-    let current_dir = env::current_dir().unwrap();
-    let d = load_config(&current_dir);
-    load_partials(&d.partials());
-    load_generators(&d.generators());
+    let s = fs::read_to_string(env::current_dir().unwrap().join(ATHALAR_CONFIG_FILE)).unwrap();
+    let config = AthalarConfig::from_str(&s).unwrap();
+    let athalar = Athalar::new(config);
+    dbg!(&athalar);
 }

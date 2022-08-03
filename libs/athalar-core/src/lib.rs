@@ -1,16 +1,16 @@
 mod atom;
 mod binding;
-mod constants;
+mod config;
 mod generator;
 mod partial;
+mod utils;
 
-use config::AthalarConfig;
-use derive_builder::Builder;
 use generator::AthalarGenerator;
 use partial::AthalarPartial;
+use utils::{load_generators, load_partials};
 
 /// The root instance that manipulates and stores data about an Athalar project.
-#[derive(Debug, PartialEq, Builder)]
+#[derive(Debug, PartialEq)]
 pub struct Athalar {
     /// The configuration to use for the Athalar instance
     pub config: AthalarConfig,
@@ -22,5 +22,17 @@ pub struct Athalar {
     pub generators: Vec<AthalarGenerator>,
 }
 
-pub mod config;
-pub mod utils;
+impl Athalar {
+    pub fn new(config: AthalarConfig) -> Self {
+        let partials = load_partials(&config.partials());
+        let generators = load_generators(&config.generators());
+        Self {
+            config,
+            partials,
+            generators,
+        }
+    }
+}
+
+pub use config::AthalarConfig;
+pub mod constants;

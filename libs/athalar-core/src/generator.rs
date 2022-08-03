@@ -1,11 +1,16 @@
-use crate::binding::AthalarBinding;
+use crate::{binding::AthalarBinding, utils::get_name_from_path};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{PathBuf, MAIN_SEPARATOR};
 
 /// Contains information about a discovered generator in the project.
 #[derive(Debug, PartialEq, Builder, Clone)]
 pub struct AthalarGenerator {
+    /// The name of this generator, based on the file name. Can be considered to be it's
+    /// unique identifier.
+    #[builder(default = "self.get_name()?")]
+    name: String,
+
     /// The path to this partial relative to the current directory
     source: PathBuf,
 
@@ -17,6 +22,13 @@ impl AthalarGenerator {
     /// The directory in which this partial will be found, relative to partial directory
     pub fn source(&self) -> &PathBuf {
         &self.source
+    }
+}
+
+impl AthalarGeneratorBuilder {
+    fn get_name(&self) -> Result<String, String> {
+        let source = get_name_from_path(&self.source.clone().unwrap());
+        Ok(source)
     }
 }
 

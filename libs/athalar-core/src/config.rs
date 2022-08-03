@@ -1,6 +1,6 @@
 use derive_builder::{self, Builder};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::{error::Error, path::PathBuf, str::FromStr};
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum AthalarConfigKind {
@@ -33,6 +33,15 @@ pub struct AthalarConfig {
 
     #[builder(default = "PathBuf::from(\"generators\")")]
     generators: PathBuf,
+}
+
+impl FromStr for AthalarConfig {
+    type Err = Box<dyn Error>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let acb = toml::from_str::<AthalarConfigBuilder>(s).unwrap();
+        Ok(acb.build().unwrap())
+    }
 }
 
 impl AthalarConfig {
