@@ -1,0 +1,7 @@
+bindings:
+  - output: ../../libs/generated/src/backend.ts
+    profile: !ClassValidator
+      className: ApplicationConfig
+variables:
+  - !IncludePartial mail
+  - !IncludePartial api
