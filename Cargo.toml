@@ -1,2 +1,2 @@
 [workspace]
-members = ["libs/athalar-core"]
+members = ["libs/athalar-core", "apps/athalar"]
