@@ -1,0 +1,5 @@
+config:
+  - name: API_ACCESS_KEY
+    description: The access key required for https://some.api.com
+    validators:
+      - !IsString
