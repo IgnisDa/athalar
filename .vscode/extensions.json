@@ -4,6 +4,7 @@
     "esbenp.prettier-vscode",
     "magicstack.edgedb",
     "timonwong.shellcheck",
-    "tamasfe.even-better-toml"
+    "tamasfe.even-better-toml",
+    "dbaeumer.vscode-eslint"
   ]
 }
