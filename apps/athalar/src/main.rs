@@ -4,6 +4,6 @@ use std::{env, fs, str::FromStr};
 fn main() {
     let s = fs::read_to_string(env::current_dir().unwrap().join(ATHALAR_CONFIG_FILE)).unwrap();
     let config = AthalarConfig::from_str(&s).unwrap();
-    let athalar = Athalar::new(config);
+    let athalar = Athalar::from_config(config);
     dbg!(&athalar);
 }
