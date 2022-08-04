@@ -1,7 +1,7 @@
 use crate::{binding::AthalarBinding, utils::get_name_from_path};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use std::path::{PathBuf, MAIN_SEPARATOR};
+use std::path::PathBuf;
 
 /// Contains information about a discovered generator in the project.
 #[derive(Debug, PartialEq, Builder, Clone)]
