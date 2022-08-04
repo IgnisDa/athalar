@@ -8,9 +8,9 @@ mod utils;
 
 use std::fs;
 
-use generator::AthalarGenerator;
+use generator::{AthalarGenerator, AthalarGeneratorContent};
 use partial::AthalarPartial;
-use report::{GeneratorBindingReport, ValidationReport};
+use report::{GeneratorBindingReport, GeneratorConfigReport, ReportLevel, ValidationReport};
 use utils::{load_generators, load_partials};
 
 /// The root instance that manipulates and stores data about an Athalar project. When
@@ -52,23 +52,49 @@ impl Athalar {
     /// Once the project files are loaded, this runs a validation on all the collected data
     /// and returns it so that it can be displayed to the end user.
     pub fn get_validation_report(&self) -> ValidationReport {
-        let mut report = ValidationReport::default();
-        self.set_binding_errors(&mut report);
-        report
+        let mut reporter = ValidationReport::default();
+        // handle generators
+        self.set_generator_binding_errors(&mut reporter);
+        self.set_generator_config_errors(&mut reporter);
+        reporter
     }
 
-    fn set_binding_errors<'a>(&'a self, report: &mut ValidationReport<'a>) {
+    fn set_generator_binding_errors<'a>(&'a self, reporter: &mut ValidationReport<'a>) {
         self.generators.iter().for_each(|g| {
             g.data.bindings.iter().for_each(|b| {
                 if b.output.exists() {
-                    report.add_binding_report(g, GeneratorBindingReport::FileAlreadyExists);
+                    reporter.add_generator_binding_report(
+                        b,
+                        GeneratorBindingReport::FileAlreadyExists,
+                        ReportLevel::Warning,
+                    );
                 } else {
                     // if file already exists, we can assume it can be created
                     if fs::write(&b.output, "temp").is_ok() {
                         fs::remove_file(&b.output).unwrap();
                     } else {
-                        report.add_binding_report(g, GeneratorBindingReport::CanNotCreateFile);
+                        reporter.add_generator_binding_report(
+                            b,
+                            GeneratorBindingReport::CanNotCreateFile,
+                            ReportLevel::Severe,
+                        );
                     };
+                }
+            })
+        });
+    }
+
+    fn set_generator_config_errors<'a>(&'a self, reporter: &mut ValidationReport<'a>) {
+        self.generators.iter().for_each(|g| {
+            g.data.config.iter().for_each(|c| match c {
+                AthalarGeneratorContent::IncludePartial(partial_name) => {
+                    if !self.partials.iter().any(|p| &p.name == partial_name) {
+                        reporter.add_generator_config_report(
+                            c,
+                            GeneratorConfigReport::PartialDoesNotExist,
+                            ReportLevel::Severe,
+                        );
+                    }
                 }
             })
         });
