@@ -9,7 +9,7 @@ pub struct AthalarPartial {
     /// The name of this generator, based on the file name. Can be considered to be it's
     /// unique identifier.
     #[builder(default = "self.get_name()?")]
-    name: String,
+    pub name: String,
 
     /// The path to this partial relative to the current directory
     source: PathBuf,
