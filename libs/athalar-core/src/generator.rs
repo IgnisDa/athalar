@@ -9,13 +9,13 @@ pub struct AthalarGenerator {
     /// The name of this generator, based on the file name. Can be considered to be it's
     /// unique identifier.
     #[builder(default = "self.get_name()?")]
-    name: String,
+    pub name: String,
 
     /// The path to this partial relative to the current directory
-    source: PathBuf,
+    pub source: PathBuf,
 
     /// The actual data that is in this generator file
-    data: AthalarGeneratorData,
+    pub data: AthalarGeneratorData,
 }
 
 impl AthalarGenerator {
@@ -42,11 +42,11 @@ pub enum AthalarGeneratorContent {
 pub struct AthalarGeneratorData {
     /// Information about which bindings need to be generated
     #[builder(setter(into, strip_option), default)]
-    bindings: Vec<AthalarBinding>,
+    pub bindings: Vec<AthalarBinding>,
 
     /// The actual data in the file
     #[builder(setter(into, strip_option), default)]
-    config: Vec<AthalarGeneratorContent>,
+    pub config: Vec<AthalarGeneratorContent>,
 }
 
 impl AthalarGeneratorData {
