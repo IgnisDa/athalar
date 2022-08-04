@@ -10,6 +10,7 @@ pub enum ReportLevel {
 pub enum GeneratorBindingReport {
     CanNotCreateFile,
     FileAlreadyExists,
+    FileConflict,
 }
 
 #[derive(Debug)]
