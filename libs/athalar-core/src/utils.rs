@@ -16,7 +16,6 @@ pub fn get_name_from_path(path: &Path) -> String {
         .unwrap()
         .to_string()
         .split(MAIN_SEPARATOR)
-        .collect::<Vec<_>>()
         .last()
         .unwrap()
         .split('.')
