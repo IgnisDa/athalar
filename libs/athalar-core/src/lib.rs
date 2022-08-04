@@ -80,6 +80,13 @@ impl Athalar {
                         );
                     };
                 }
+                if g.data.bindings.iter().any(|ib| ib.output == b.output) {
+                    reporter.add_generator_binding_report(
+                        b,
+                        GeneratorBindingReport::FileConflict,
+                        ReportLevel::Warning,
+                    );
+                }
             })
         });
     }
