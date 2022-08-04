@@ -11,6 +11,7 @@
         "clippy",
         "commitlint",
         "ignisda",
+        "nextest",
         "nrwl",
         "nxrs",
         "pnpm"
