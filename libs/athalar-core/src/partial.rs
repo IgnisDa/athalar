@@ -5,8 +5,7 @@ use crate::{
 };
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use serde_yaml::Sequence;
-use std::{collections::HashMap, path::PathBuf};
+use std::path::PathBuf;
 use uuid::Uuid;
 
 /// Contains information about a discovered partial in the project.
@@ -34,13 +33,6 @@ impl AthalarPartialBuilder {
     }
 }
 
-impl AthalarPartial {
-    /// The directory in which this partial will be found, relative to partial directory
-    pub fn source(&self) -> &PathBuf {
-        &self.source
-    }
-}
-
 #[derive(Debug, PartialEq, Builder, Clone)]
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarPartialData {
@@ -49,27 +41,17 @@ pub struct AthalarPartialData {
     pub kind: AthalarConfigKind,
 
     /// The actual data in the file
-    #[builder(setter(into, strip_option), default)]
+    #[builder(field(
+        type = "Vec<AthalarAtomBuilder>",
+        build = "self.config.iter().map(|c| c.build().unwrap()).collect()"
+    ))]
     pub config: Vec<AthalarAtom>,
 }
 
 impl AthalarPartialData {
     pub fn partial_from_yaml_string(yaml_string: &str) -> Self {
-        let contents = serde_yaml::from_str::<HashMap<String, Sequence>>(yaml_string).unwrap();
-        let atoms = contents
-            .get("config")
-            .into_iter()
-            .flat_map(|atoms| {
-                atoms.iter().map(|a| {
-                    serde_yaml::from_str::<AthalarAtomBuilder>(&serde_yaml::to_string(a).unwrap())
-                        .unwrap()
-                        .build()
-                        .unwrap()
-                })
-            })
-            .collect::<Vec<_>>();
-        AthalarPartialDataBuilder::default()
-            .config(atoms)
+        serde_yaml::from_str::<AthalarPartialDataBuilder>(yaml_string)
+            .unwrap()
             .build()
             .unwrap()
     }
@@ -88,7 +70,7 @@ mod test {
     #[test]
     fn no_validators() {
         let apd = AthalarPartialDataBuilder::default()
-            .config(vec![AthalarAtom::default()])
+            .config(vec![AthalarAtomBuilder::default().name("atom").clone()])
             .build()
             .unwrap();
         assert_eq!(apd.config.len(), 1);
@@ -98,7 +80,7 @@ mod test {
     #[test]
     fn specifying_kind_as_variable_sets_correct_value() {
         let apd = AthalarPartialDataBuilder::default()
-            .config(vec![AthalarAtom::default()])
+            .config(vec![AthalarAtomBuilder::default().name("atom").clone()])
             .build()
             .unwrap();
         assert_eq!(apd.kind, AthalarConfigKind::Variable);

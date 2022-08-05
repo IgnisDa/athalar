@@ -1,6 +1,6 @@
 [package]
 name = "athalar_core"
-description = "The athalar core used to create langauge bindings"
+description = "The athalar core used to create language bindings"
 repository = "https://github.com/IgnisDa/athalar"
 readme = "README.md"
 version = "0.0.1"

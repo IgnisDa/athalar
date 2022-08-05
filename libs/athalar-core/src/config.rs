@@ -7,12 +7,6 @@ pub enum AthalarConfigKind {
     Variable,
 }
 
-impl AthalarConfigKind {
-    fn variable() -> Self {
-        Self::Variable
-    }
-}
-
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum AthalarConfigVersion {
     #[serde(rename = "1")]
