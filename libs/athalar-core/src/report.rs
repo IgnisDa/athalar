@@ -80,7 +80,8 @@ impl<'a> ValidationReport<'a> {
         !(self.generators.bindings.is_empty() && self.generators.config.is_empty())
     }
 
-    /// Whether any of the errors present in the reporter are [ReportLevel::Severe].
+    /// Whether any of the errors present in the reporter are of the supplied level. Can be
+    /// used to detect errors and terminate early.
     pub fn has_errors_with_level(&self, level: ReportLevel) -> bool {
         for b in self.generators.bindings.iter() {
             if b.2 == level {
