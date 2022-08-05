@@ -9,4 +9,4 @@ mod utils;
 pub mod constants;
 pub mod report;
 pub use crate::config::AthalarConfig;
-pub use crate::core::Athalar;
+pub use crate::core::{Athalar, AthalarInformation};
