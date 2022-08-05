@@ -3,7 +3,6 @@ mod binding;
 mod config;
 mod generator;
 mod partial;
-mod report;
 mod utils;
 
 use std::fs;
@@ -137,3 +136,4 @@ impl Athalar {
 
 pub use config::AthalarConfig;
 pub mod constants;
+pub mod report;
