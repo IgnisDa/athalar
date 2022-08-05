@@ -1,7 +1,12 @@
-use crate::{binding::AthalarBinding, utils::get_name_from_path};
+use crate::{
+    binding::{AthalarBinding, AthalarBindingBuilder},
+    utils::get_name_from_path,
+};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use serde_yaml::{value::TaggedValue, Sequence};
+use std::{collections::HashMap, path::PathBuf};
+use uuid::Uuid;
 
 /// Contains information about a discovered generator in the project.
 #[derive(Debug, PartialEq, Builder, Clone)]
@@ -40,6 +45,11 @@ pub enum AthalarGeneratorContent {
 #[derive(Debug, PartialEq, Builder, Clone)]
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarGeneratorData {
+    /// A unique ID assigned to this atom, should be used as an identifier
+    #[builder(setter(skip), default = "Uuid::new_v4()")]
+    #[builder_field_attr(serde(skip))]
+    pub(crate) id: Uuid,
+
     /// Information about which bindings need to be generated
     #[builder(setter(into, strip_option), default)]
     pub bindings: Vec<AthalarBinding>,
@@ -50,9 +60,50 @@ pub struct AthalarGeneratorData {
 }
 
 impl AthalarGeneratorData {
+    // This is a very bad implementation and likely to break if we change
+    // the schema. However it is being blocked by
+    // https://github.com/dtolnay/serde-yaml/issues/302.
     pub fn partial_from_yaml_string(yaml_string: &str) -> Self {
-        serde_yaml::from_str::<AthalarGeneratorDataBuilder>(yaml_string)
-            .unwrap()
+        #[derive(Serialize, Deserialize)]
+        struct _A {
+            pub config: Vec<AthalarGeneratorContent>,
+        }
+        #[derive(Serialize, Deserialize, Debug)]
+        struct _B {
+            profile: TaggedValue,
+        }
+        #[derive(Serialize, Deserialize, Debug)]
+        struct _C {
+            pub bindings: Vec<_B>,
+        }
+        let c = serde_yaml::from_str::<_C>(yaml_string).unwrap();
+        let contents = serde_yaml::from_str::<HashMap<String, Sequence>>(yaml_string).unwrap();
+        let bindings = contents
+            .get("bindings")
+            .into_iter()
+            .zip(c.bindings)
+            .flat_map(|(b1, b2)| {
+                let tag_name = if b2.profile.tag == "!ClassValidator" {
+                    " !ClassValidator"
+                } else {
+                    " !NotPossible"
+                };
+                b1.iter().map(|b| {
+                    let mut new_str = serde_yaml::to_string(b).unwrap();
+                    let insert_after = "profile:";
+                    let pos = new_str.find(insert_after).unwrap();
+                    new_str.insert_str(pos + insert_after.len(), tag_name);
+                    serde_yaml::from_str::<AthalarBindingBuilder>(&new_str)
+                        .unwrap()
+                        .build()
+                        .unwrap()
+                })
+            })
+            .collect::<Vec<_>>();
+        let _t = serde_yaml::from_str::<_A>(yaml_string).unwrap();
+        AthalarGeneratorDataBuilder::default()
+            .bindings(bindings)
+            .config(_t.config)
             .build()
             .unwrap()
     }

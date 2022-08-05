@@ -1,13 +1,22 @@
-use crate::{atom::AthalarAtom, config::AthalarConfigKind, utils::get_name_from_path};
+use crate::{
+    atom::{AthalarAtom, AthalarAtomBuilder},
+    config::AthalarConfigKind,
+    utils::get_name_from_path,
+};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use serde_yaml::Sequence;
+use std::{collections::HashMap, path::PathBuf};
+use uuid::Uuid;
 
 /// Contains information about a discovered partial in the project.
 #[derive(Debug, PartialEq, Builder, Clone)]
 pub struct AthalarPartial {
-    /// The name of this generator, based on the file name. Can be considered to be it's
-    /// unique identifier.
+    /// A unique ID assigned to this atom, should be used as an identifier
+    #[builder(setter(skip), default = "Uuid::new_v4()")]
+    pub(crate) id: Uuid,
+
+    /// The name of this partial, based on the file name.
     #[builder(default = "self.get_name()?")]
     pub name: String,
 
@@ -15,7 +24,7 @@ pub struct AthalarPartial {
     source: PathBuf,
 
     /// The actual data that is in this generator file
-    data: AthalarPartialData,
+    pub data: AthalarPartialData,
 }
 
 impl AthalarPartialBuilder {
@@ -38,6 +47,7 @@ pub struct AthalarPartialData {
     /// The type of partial
     #[builder(default = "AthalarConfigKind::Variable")]
     pub kind: AthalarConfigKind,
+
     /// The actual data in the file
     #[builder(setter(into, strip_option), default)]
     pub config: Vec<AthalarAtom>,
@@ -45,8 +55,21 @@ pub struct AthalarPartialData {
 
 impl AthalarPartialData {
     pub fn partial_from_yaml_string(yaml_string: &str) -> Self {
-        serde_yaml::from_str::<AthalarPartialDataBuilder>(yaml_string)
-            .unwrap()
+        let contents = serde_yaml::from_str::<HashMap<String, Sequence>>(yaml_string).unwrap();
+        let atoms = contents
+            .get("config")
+            .into_iter()
+            .flat_map(|atoms| {
+                atoms.iter().map(|a| {
+                    serde_yaml::from_str::<AthalarAtomBuilder>(&serde_yaml::to_string(a).unwrap())
+                        .unwrap()
+                        .build()
+                        .unwrap()
+                })
+            })
+            .collect::<Vec<_>>();
+        AthalarPartialDataBuilder::default()
+            .config(atoms)
             .build()
             .unwrap()
     }

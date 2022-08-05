@@ -1,4 +1,4 @@
-use crate::{binding::AthalarBinding, generator::AthalarGeneratorContent};
+use crate::{atom::AthalarAtom, binding::AthalarBinding, generator::AthalarGeneratorContent};
 
 #[derive(Debug)]
 pub enum ReportLevel {
@@ -6,6 +6,8 @@ pub enum ReportLevel {
     Warning,
 }
 
+// generators
+//
 #[derive(Debug)]
 pub enum GeneratorBindingReport {
     CanNotCreateFile,
@@ -18,7 +20,7 @@ pub enum GeneratorConfigReport {
     PartialDoesNotExist,
 }
 
-/// This struct will contain a list of validations
+/// This struct will validation information about generators in an athalar project.
 #[derive(Debug)]
 pub struct GeneratorReport<'a> {
     bindings: Vec<(&'a AthalarBinding, GeneratorBindingReport, ReportLevel)>,
@@ -29,9 +31,23 @@ pub struct GeneratorReport<'a> {
     )>,
 }
 
+// partials
+
+#[derive(Debug)]
+pub enum PartialConfigReport {
+    NameConflict,
+}
+
+/// This struct will validation information about generators in an athalar project.
+#[derive(Debug)]
+pub struct PartialReport<'a> {
+    config: Vec<(&'a AthalarAtom, PartialConfigReport, ReportLevel)>,
+}
+
 #[derive(Debug)]
 pub struct ValidationReport<'a> {
     pub generators: GeneratorReport<'a>,
+    pub partials: PartialReport<'a>,
 }
 
 impl<'a> ValidationReport<'a> {
@@ -40,7 +56,11 @@ impl<'a> ValidationReport<'a> {
             bindings: vec![],
             config: vec![],
         };
-        Self { generators }
+        let partials = PartialReport { config: vec![] };
+        Self {
+            generators,
+            partials,
+        }
     }
 
     /// returns whether there are errors present in the report
@@ -59,11 +79,22 @@ impl<'a> ValidationReport<'a> {
 
     pub fn add_generator_config_report(
         &mut self,
-        config: &'a AthalarGeneratorContent,
+        generator_content: &'a AthalarGeneratorContent,
         report: GeneratorConfigReport,
         level: ReportLevel,
     ) {
-        self.generators.config.push((config, report, level));
+        self.generators
+            .config
+            .push((generator_content, report, level));
+    }
+
+    pub fn add_partial_config_report(
+        &mut self,
+        atom: &'a AthalarAtom,
+        report: PartialConfigReport,
+        level: ReportLevel,
+    ) {
+        self.partials.config.push((atom, report, level));
     }
 }
 

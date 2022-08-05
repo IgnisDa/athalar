@@ -1,5 +1,6 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum AtomValidator {
@@ -16,9 +17,15 @@ pub enum AtomKind {
 }
 
 #[derive(Debug, PartialEq, Builder, Clone, Default, Serialize, Deserialize)]
+#[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarAtom {
+    /// A unique ID assigned to this atom, should be used as an identifier
+    #[builder(setter(skip), default = "Uuid::new_v4()")]
+    #[builder_field_attr(serde(skip))]
+    pub(crate) id: Uuid,
+
     /// The name of this configuration variable
-    name: String,
+    pub name: String,
 
     #[builder(setter(into, strip_option), default = "None")]
     kind: Option<AtomKind>,
