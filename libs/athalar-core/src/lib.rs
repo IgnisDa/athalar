@@ -10,7 +10,10 @@ use std::fs;
 
 use generator::{AthalarGenerator, AthalarGeneratorContent};
 use partial::AthalarPartial;
-use report::{GeneratorBindingReport, GeneratorConfigReport, ReportLevel, ValidationReport};
+use report::{
+    GeneratorBindingReport, GeneratorConfigReport, PartialConfigReport, ReportLevel,
+    ValidationReport,
+};
 use utils::{load_generators, load_partials};
 
 /// The root instance that manipulates and stores data about an Athalar project. When
@@ -56,6 +59,8 @@ impl Athalar {
         // handle generators
         self.set_generator_binding_errors(&mut reporter);
         self.set_generator_config_errors(&mut reporter);
+        // handle partials
+        self.set_partial_config_errors(&mut reporter);
         reporter
     }
 
@@ -80,7 +85,11 @@ impl Athalar {
                         );
                     };
                 }
-                if g.data.bindings.iter().any(|ib| ib.output == b.output) {
+                if g.data
+                    .bindings
+                    .iter()
+                    .any(|ib| ib.output == b.output && ib.id != b.id)
+                {
                     reporter.add_generator_binding_report(
                         b,
                         GeneratorBindingReport::FileConflict,
@@ -104,6 +113,24 @@ impl Athalar {
                     }
                 }
             })
+        });
+    }
+
+    fn set_partial_config_errors<'a>(&'a self, reporter: &mut ValidationReport<'a>) {
+        self.partials.iter().for_each(|p| {
+            p.data.config.iter().for_each(|c| {
+                if p.data
+                    .config
+                    .iter()
+                    .any(|ip| ip.name == p.name && ip.id != p.id)
+                {
+                    reporter.add_partial_config_report(
+                        c,
+                        PartialConfigReport::NameConflict,
+                        ReportLevel::Warning,
+                    );
+                }
+            });
         });
     }
 }
