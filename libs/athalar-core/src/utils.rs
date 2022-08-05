@@ -9,6 +9,7 @@ use std::{
     fs,
     path::{Path, PathBuf, MAIN_SEPARATOR},
 };
+use uuid::Uuid;
 
 /// Changes path to name, eg: `src/generators/backend.ath.yaml` to `backend`.
 pub fn get_name_from_path(path: &Path) -> String {
@@ -69,4 +70,8 @@ pub fn load_generators(dir: &Path) -> Vec<AthalarGenerator> {
                 .unwrap()
         })
         .collect()
+}
+
+pub(crate) fn get_uuid() -> Uuid {
+    Uuid::new_v4()
 }

@@ -1,11 +1,10 @@
 use crate::{
     binding::{AthalarBinding, AthalarBindingBuilder},
-    utils::get_name_from_path,
+    utils::{get_name_from_path, get_uuid},
 };
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use serde_yaml::{value::TaggedValue, Sequence};
-use std::{collections::HashMap, path::PathBuf};
+use std::path::PathBuf;
 use uuid::Uuid;
 
 /// Contains information about a discovered generator in the project.
@@ -13,7 +12,7 @@ use uuid::Uuid;
 pub struct AthalarGenerator {
     /// The name of this generator, based on the file name. Can be considered to be it's
     /// unique identifier.
-    #[builder(default = "self.get_name()?")]
+    #[builder(setter(into), default = "self.get_name()?")]
     pub name: String,
 
     /// The path to this partial relative to the current directory
@@ -21,13 +20,6 @@ pub struct AthalarGenerator {
 
     /// The actual data that is in this generator file
     pub data: AthalarGeneratorData,
-}
-
-impl AthalarGenerator {
-    /// The directory in which this partial will be found, relative to partial directory
-    pub fn source(&self) -> &PathBuf {
-        &self.source
-    }
 }
 
 impl AthalarGeneratorBuilder {
@@ -46,12 +38,15 @@ pub enum AthalarGeneratorContent {
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarGeneratorData {
     /// A unique ID assigned to this atom, should be used as an identifier
-    #[builder(setter(skip), default = "Uuid::new_v4()")]
-    #[builder_field_attr(serde(skip))]
+    #[builder(field(type = "Uuid"))]
+    #[builder_field_attr(serde(default = "get_uuid"))]
     pub(crate) id: Uuid,
 
     /// Information about which bindings need to be generated
-    #[builder(setter(into, strip_option), default)]
+    #[builder(field(
+        type = "Vec<AthalarBindingBuilder>",
+        build = "self.bindings.iter().map(|b| b.build().unwrap()).collect()"
+    ))]
     pub bindings: Vec<AthalarBinding>,
 
     /// The actual data in the file
@@ -60,50 +55,9 @@ pub struct AthalarGeneratorData {
 }
 
 impl AthalarGeneratorData {
-    // This is a very bad implementation and likely to break if we change
-    // the schema. However it is being blocked by
-    // https://github.com/dtolnay/serde-yaml/issues/302.
     pub fn partial_from_yaml_string(yaml_string: &str) -> Self {
-        #[derive(Serialize, Deserialize)]
-        struct _A {
-            pub config: Vec<AthalarGeneratorContent>,
-        }
-        #[derive(Serialize, Deserialize, Debug)]
-        struct _B {
-            profile: TaggedValue,
-        }
-        #[derive(Serialize, Deserialize, Debug)]
-        struct _C {
-            pub bindings: Vec<_B>,
-        }
-        let c = serde_yaml::from_str::<_C>(yaml_string).unwrap();
-        let contents = serde_yaml::from_str::<HashMap<String, Sequence>>(yaml_string).unwrap();
-        let bindings = contents
-            .get("bindings")
-            .into_iter()
-            .zip(c.bindings)
-            .flat_map(|(b1, b2)| {
-                let tag_name = if b2.profile.tag == "!ClassValidator" {
-                    " !ClassValidator"
-                } else {
-                    " !NotPossible"
-                };
-                b1.iter().map(|b| {
-                    let mut new_str = serde_yaml::to_string(b).unwrap();
-                    let insert_after = "profile:";
-                    let pos = new_str.find(insert_after).unwrap();
-                    new_str.insert_str(pos + insert_after.len(), tag_name);
-                    serde_yaml::from_str::<AthalarBindingBuilder>(&new_str)
-                        .unwrap()
-                        .build()
-                        .unwrap()
-                })
-            })
-            .collect::<Vec<_>>();
-        let _t = serde_yaml::from_str::<_A>(yaml_string).unwrap();
-        AthalarGeneratorDataBuilder::default()
-            .bindings(bindings)
-            .config(_t.config)
+        serde_yaml::from_str::<AthalarGeneratorDataBuilder>(yaml_string)
+            .unwrap()
             .build()
             .unwrap()
     }
@@ -147,8 +101,7 @@ mod test {
                         .build()
                         .unwrap(),
                 ))
-                .build()
-                .unwrap()])
+                .clone()])
             .build()
             .unwrap();
         assert_eq!(agd.bindings.len(), 1);

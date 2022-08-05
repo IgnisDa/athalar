@@ -1,5 +1,6 @@
 mod class_validator;
 
+use crate::utils::get_uuid;
 use class_validator::ClassValidatorAdapterProfile;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
@@ -16,8 +17,8 @@ pub enum AthalarAdapter {
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarBinding {
     /// A unique ID assigned to this binding, should be used as an identifier
-    #[builder(setter(skip), default = "Uuid::new_v4()")]
-    #[builder_field_attr(serde(skip))]
+    #[builder(field(type = "Uuid"))]
+    #[builder_field_attr(serde(default = "get_uuid"))]
     pub(crate) id: Uuid,
 
     // The user will declare this path to be relative to `athalar.toml` but we will fully

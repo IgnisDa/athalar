@@ -1,3 +1,4 @@
+use crate::utils::get_uuid;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -20,11 +21,12 @@ pub enum AtomKind {
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarAtom {
     /// A unique ID assigned to this atom, should be used as an identifier
-    #[builder(setter(skip), default = "Uuid::new_v4()")]
-    #[builder_field_attr(serde(skip))]
+    #[builder(field(type = "Uuid"))]
+    #[builder_field_attr(serde(default = "get_uuid"))]
     pub(crate) id: Uuid,
 
     /// The name of this configuration variable
+    #[builder(setter(into))]
     pub name: String,
 
     #[builder(setter(into, strip_option), default = "None")]
@@ -59,17 +61,14 @@ mod test {
 
     #[test]
     fn no_validators_in_yaml_yields_validator_of_zero_len() {
-        let aca = AthalarAtomBuilder::default()
-            .name("mail".into())
-            .build()
-            .unwrap();
+        let aca = AthalarAtomBuilder::default().name("mail").build().unwrap();
         assert_eq!(aca.validators.len(), 0);
     }
 
     #[test]
     fn correct_number_of_validators() {
         let aca = AthalarAtomBuilder::default()
-            .name("mail".into())
+            .name("mail")
             .validators(vec![AtomValidator::String])
             .build()
             .unwrap();
