@@ -1,6 +1,6 @@
 use crate::{
     binding::{AthalarBinding, AthalarBindingBuilder},
-    utils::{get_name_from_path, get_uuid},
+    utils::get_name_from_path,
 };
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
@@ -8,10 +8,13 @@ use std::path::PathBuf;
 use uuid::Uuid;
 
 /// Contains information about a discovered generator in the project.
-#[derive(Debug, PartialEq, Builder, Clone)]
+#[derive(Debug, PartialEq, Builder, Clone, Eq)]
 pub struct AthalarGenerator {
-    /// The name of this generator, based on the file name. Can be considered to be it's
-    /// unique identifier.
+    /// A unique ID assigned to this atom, should be used as an identifier
+    #[builder(setter(skip), default = "Uuid::new_v4()")]
+    pub(crate) id: Uuid,
+
+    /// The name of this generator, based on the file name.
     #[builder(setter(into), default = "self.get_name()?")]
     pub name: String,
 
@@ -29,19 +32,14 @@ impl AthalarGeneratorBuilder {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
 pub enum AthalarGeneratorContent {
     IncludePartial(String),
 }
 
-#[derive(Debug, PartialEq, Builder, Clone)]
+#[derive(Debug, PartialEq, Builder, Clone, Eq)]
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarGeneratorData {
-    /// A unique ID assigned to this atom, should be used as an identifier
-    #[builder(field(type = "Uuid"))]
-    #[builder_field_attr(serde(default = "get_uuid"))]
-    pub(crate) id: Uuid,
-
     /// Information about which bindings need to be generated
     #[builder(field(
         type = "Vec<AthalarBindingBuilder>",

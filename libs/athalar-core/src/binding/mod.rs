@@ -7,13 +7,13 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
 pub enum AthalarAdapter {
     ClassValidator(ClassValidatorAdapterProfile),
 }
 
 /// A binding is a set of configuration for a specific language.
-#[derive(Debug, PartialEq, Clone, Builder, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Builder, Serialize, Deserialize, Eq)]
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarBinding {
     /// A unique ID assigned to this binding, should be used as an identifier
