@@ -1,6 +1,6 @@
 use derive_builder::{self, Builder};
 use serde::{Deserialize, Serialize};
-use std::{error::Error, path::PathBuf, str::FromStr};
+use std::{error::Error, path::PathBuf};
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum AthalarConfigKind {
@@ -29,16 +29,15 @@ pub struct AthalarConfig {
     generators: PathBuf,
 }
 
-impl FromStr for AthalarConfig {
-    type Err = Box<dyn Error>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let acb = toml::from_str::<AthalarConfigBuilder>(s).unwrap();
-        Ok(acb.build().unwrap())
-    }
-}
-
 impl AthalarConfig {
+    pub fn from_str_and_source(s: &str, project_src: &String) -> Result<Self, Box<dyn Error>> {
+        let project_src = PathBuf::from(project_src);
+        let acb = toml::from_str::<AthalarConfigBuilder>(s).unwrap();
+        let mut athalar_config = acb.build().unwrap();
+        athalar_config.source = project_src.join(athalar_config.source);
+        Ok(athalar_config)
+    }
+
     /// The directory where the partials will be located
     pub fn partials(&self) -> PathBuf {
         self.source.join(self.partials.clone())
@@ -47,6 +46,11 @@ impl AthalarConfig {
     /// The directory where the generators will be located
     pub fn generators(&self) -> PathBuf {
         self.source.join(self.generators.clone())
+    }
+
+    /// The directory where the project is present
+    pub fn project_source(&self) -> PathBuf {
+        self.source.parent().unwrap().to_path_buf()
     }
 }
 

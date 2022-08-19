@@ -6,5 +6,5 @@ use serde::{Deserialize, Serialize};
 pub struct ClassValidatorAdapterProfile {
     /// The name of the class generated
     #[builder(setter(into, strip_option), default)]
-    class_name: Option<String>,
+    pub class_name: Option<String>,
 }

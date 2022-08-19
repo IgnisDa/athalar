@@ -7,6 +7,8 @@ mod partial;
 mod utils;
 
 pub mod constants;
-pub mod report;
+pub mod reporting;
+pub use crate::atom::{AtomKind, AtomValidator};
 pub use crate::config::AthalarConfig;
 pub use crate::core::{Athalar, AthalarInformation};
+pub use binding::AthalarAdapter;

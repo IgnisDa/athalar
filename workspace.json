@@ -1,6 +1,5 @@
 {
   "projects": {
-    "athalar": "apps/athalar",
     "athalar-js": "apps/athalar-js",
     "athalar_core": "libs/athalar-core",
     "config": "apps/config",

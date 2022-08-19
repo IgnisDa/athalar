@@ -3,8 +3,8 @@ use crate::{
     config::AthalarConfig,
     generator::{AthalarGenerator, AthalarGeneratorContent},
     partial::AthalarPartial,
-    report::{
-        GeneratorBindingReport, GeneratorConfigReport, PartialConfigReport, ReportLevel,
+    reporting::{
+        data::{GeneratorReportCreator, PartialReportCreator},
         ValidationReport,
     },
     utils::{load_generators, load_partials},
@@ -67,34 +67,40 @@ impl Athalar {
 
     fn set_generator_binding_errors<'a>(&'a self, reporter: &mut ValidationReport<'a>) {
         self.generators.iter().for_each(|g| {
+            let generator_dir = &self.config.project_source();
+            // dbg!(&generator_dir);
             g.data.bindings.iter().for_each(|b| {
-                if b.output.exists() {
+                if b.output(generator_dir).exists() {
                     reporter.add_generator_binding_report(
                         b,
-                        GeneratorBindingReport::FileAlreadyExists,
-                        ReportLevel::Warning,
+                        GeneratorReportCreator::file_already_exists(
+                            &b.output(generator_dir).to_string_lossy(),
+                        ),
                     );
                 } else {
                     // if file already exists, we can assume it can be created
-                    if fs::write(&b.output, "temp").is_ok() {
-                        fs::remove_file(&b.output).unwrap();
+                    if fs::write(&b.output(generator_dir), "temp").is_ok() {
+                        fs::remove_file(&b.output(generator_dir)).unwrap();
                     } else {
                         reporter.add_generator_binding_report(
                             b,
-                            GeneratorBindingReport::CanNotCreateFile,
-                            ReportLevel::Severe,
+                            GeneratorReportCreator::can_not_create_file(
+                                &b.output(generator_dir).to_string_lossy(),
+                            ),
                         );
                     };
                 }
                 if g.data
                     .bindings
                     .iter()
-                    .any(|ib| ib.output == b.output && ib.id != b.id)
+                    .any(|ib| ib.output(generator_dir) == b.output(generator_dir) && ib.id != b.id)
                 {
                     reporter.add_generator_binding_report(
                         b,
-                        GeneratorBindingReport::FileConflict,
-                        ReportLevel::Warning,
+                        GeneratorReportCreator::file_conflict(
+                            b.id.to_string().as_str(),
+                            b.id.to_string().as_str(),
+                        ),
                     );
                 }
             })
@@ -108,8 +114,7 @@ impl Athalar {
                     if !self.partials.iter().any(|p| &p.name == partial_name) {
                         reporter.add_generator_config_report(
                             c,
-                            GeneratorConfigReport::PartialDoesNotExist,
-                            ReportLevel::Severe,
+                            GeneratorReportCreator::partial_does_not_exist(partial_name),
                         );
                     }
                 }
@@ -118,18 +123,17 @@ impl Athalar {
     }
 
     fn set_partial_config_errors<'a>(&'a self, reporter: &mut ValidationReport<'a>) {
+        // TODO: This pushes the same error in the vector twice, we actually need to remove
+        // the erroring atom once we push the error into the stack.
         self.partials.iter().for_each(|p| {
             p.data.config.iter().for_each(|c| {
                 if p.data
                     .config
                     .iter()
-                    .any(|ip| ip.name == p.name && ip.id != p.id)
+                    .any(|ip| ip.name == c.name && ip.id != c.id)
                 {
-                    reporter.add_partial_config_report(
-                        c,
-                        PartialConfigReport::NameConflict,
-                        ReportLevel::Warning,
-                    );
+                    reporter
+                        .add_partial_config_report(c, PartialReportCreator::name_conflict(&p.name));
                 }
             });
         });
@@ -156,11 +160,17 @@ impl Athalar {
             }
             info.push((generator, partials));
         }
-        Ok(AthalarInformation(info))
+        Ok(AthalarInformation {
+            generators: info,
+            config: &self.config,
+        })
     }
 }
 
 /// This will contain all the structured information that will be needed to generate
 /// bindings.
 #[derive(Debug)]
-pub struct AthalarInformation<'a>(Vec<(&'a AthalarGenerator, Vec<AthalarAtom>)>);
+pub struct AthalarInformation<'a> {
+    pub generators: Vec<(&'a AthalarGenerator, Vec<AthalarAtom>)>,
+    pub config: &'a AthalarConfig,
+}

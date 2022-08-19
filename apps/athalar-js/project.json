@@ -1,14 +1,12 @@
 {
   "dependencies": {
-    "required": [
-      "ts-morph"
-    ],
+    "required": ["chalk", "cmd-ts", "lodash", "ts-morph"],
     "development": [
       "@napi-rs/cli",
       "@swc-node/register",
+      "@types/lodash",
       "@vercel/ncc",
       "ava",
-      "benny",
       "chalk",
       "lint-staged",
       "npm-run-all",
@@ -18,16 +16,48 @@
   "projectType": "application",
   "sourceRoot": "apps/athalar-js",
   "targets": {
+    "build": {
+      "configurations": {
+        "production": {
+          "commands": [
+            {
+              "command": "napi build --platform --release",
+              "forwardAllArgs": true
+            },
+            {
+              "command": "ncc build bin/index.ts && cp index.d.ts dist/index.d.ts",
+              "forwardAllArgs": false
+            }
+          ]
+        }
+      },
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "napi build --platform",
+            "forwardAllArgs": true
+          },
+          {
+            "command": "ncc build bin/index.ts && cp index.d.ts dist/index.d.ts",
+            "forwardAllArgs": false
+          }
+        ],
+        "cwd": "apps/athalar-js",
+        "parallel": false
+      },
+      "outputs": [
+        "apps/athalar-js/dist",
+        "apps/athalar-js/index.*",
+        "apps/athalar-js/*.node"
+      ]
+    },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "apps/athalar-js/**/*.ts"
-        ]
+        "lintFilePatterns": ["apps/athalar-js/**/*.ts"]
       },
-      "outputs": [
-        "{options.outputFile}"
-      ]
+      "outputs": ["{options.outputFile}"]
     },
     "version": {
       "executor": "@jscutlery/semver:version",

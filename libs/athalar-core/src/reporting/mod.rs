@@ -2,9 +2,10 @@
 //! athalar project.
 
 use crate::{atom::AthalarAtom, binding::AthalarBinding, generator::AthalarGeneratorContent};
+use strum_macros::Display;
 
 /// The different levels of errors that can be present in a validation report.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Display)]
 pub enum ReportLevel {
     /// If this error is encountered, the generation phase is guaranteed to fail.
     Severe,
@@ -15,43 +16,42 @@ pub enum ReportLevel {
 
 // generators
 
-/// Errors related to a binding defined in a generator
 #[derive(Debug)]
-pub enum GeneratorBindingReport {
-    CanNotCreateFile,
-    FileAlreadyExists,
-    FileConflict,
+pub enum ReportMessageOrigin {
+    GeneratorBinding,
+    GeneratorConfig,
+    PartialConfig,
 }
 
-/// Errors related to a config defined in a generator
+/// An error code combined with a message that can be displayed to the end users
 #[derive(Debug)]
-pub enum GeneratorConfigReport {
-    PartialDoesNotExist,
+pub struct ReportMessage {
+    /// The origin of the report
+    pub origin: ReportMessageOrigin,
+
+    /// A unique code for the report
+    pub code: &'static str,
+
+    /// The severity of the report
+    pub level: ReportLevel,
+
+    /// The actual error string
+    pub message: String,
 }
 
 /// This struct will validation information about generators in an athalar project.
 #[derive(Debug)]
 pub struct GeneratorReport<'a> {
-    bindings: Vec<(&'a AthalarBinding, GeneratorBindingReport, ReportLevel)>,
-    config: Vec<(
-        &'a AthalarGeneratorContent,
-        GeneratorConfigReport,
-        ReportLevel,
-    )>,
+    pub bindings: Vec<(&'a AthalarBinding, ReportMessage)>,
+    pub config: Vec<(&'a AthalarGeneratorContent, ReportMessage)>,
 }
 
 // partials
 
-/// Errors related to a config defined in a partial
-#[derive(Debug)]
-pub enum PartialConfigReport {
-    NameConflict,
-}
-
 /// This struct will validation information about partials in an athalar project.
 #[derive(Debug)]
 pub struct PartialReport<'a> {
-    config: Vec<(&'a AthalarAtom, PartialConfigReport, ReportLevel)>,
+    pub config: Vec<(&'a AthalarAtom, ReportMessage)>,
 }
 
 /// This contains all the information about the different problems that were detected
@@ -84,17 +84,17 @@ impl<'a> ValidationReport<'a> {
     /// used to detect errors and terminate early.
     pub fn has_errors_with_level(&self, level: ReportLevel) -> bool {
         for b in self.generators.bindings.iter() {
-            if b.2 == level {
+            if b.1.level == level {
                 return true;
             }
         }
         for c in self.generators.config.iter() {
-            if c.2 == level {
+            if c.1.level == level {
                 return true;
             }
         }
         for c in self.partials.config.iter() {
-            if c.2 == level {
+            if c.1.level == level {
                 return true;
             }
         }
@@ -104,30 +104,21 @@ impl<'a> ValidationReport<'a> {
     pub fn add_generator_binding_report(
         &mut self,
         binding: &'a AthalarBinding,
-        report: GeneratorBindingReport,
-        level: ReportLevel,
+        report: ReportMessage,
     ) {
-        self.generators.bindings.push((binding, report, level));
+        self.generators.bindings.push((binding, report));
     }
 
     pub fn add_generator_config_report(
         &mut self,
         generator_content: &'a AthalarGeneratorContent,
-        report: GeneratorConfigReport,
-        level: ReportLevel,
+        report: ReportMessage,
     ) {
-        self.generators
-            .config
-            .push((generator_content, report, level));
+        self.generators.config.push((generator_content, report));
     }
 
-    pub fn add_partial_config_report(
-        &mut self,
-        atom: &'a AthalarAtom,
-        report: PartialConfigReport,
-        level: ReportLevel,
-    ) {
-        self.partials.config.push((atom, report, level));
+    pub fn add_partial_config_report(&mut self, atom: &'a AthalarAtom, report: ReportMessage) {
+        self.partials.config.push((atom, report));
     }
 }
 
@@ -136,3 +127,5 @@ impl<'a> Default for ValidationReport<'a> {
         Self::new()
     }
 }
+
+pub mod data;

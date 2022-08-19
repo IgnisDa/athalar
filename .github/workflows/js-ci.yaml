@@ -50,27 +50,27 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              pnpm nx run-many --target build --projects='athalar-js'
+              pnpm nx build athalar-js --configuration=production
               strip -x apps/*/*.node
           - host: windows-latest
             target: x86_64-pc-windows-msvc
             build: |
-              pnpm nx run-many --target build --projects='athalar-js'
+              pnpm nx build athalar-js --configuration=production
           - host: windows-latest
             target: i686-pc-windows-msvc
             build: |
-              pnpm nx run-many --target build --projects='athalar-js' -- --target i686-pc-windows-msvc
+              pnpm nx build athalar-js --configuration=production -- --target i686-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |
-              pnpm nx run-many --target build --projects='athalar-js' -- --target x86_64-unknown-linux-gnu
+              pnpm nx build athalar-js --configuration=production -- --target x86_64-unknown-linux-gnu
               strip -x apps/*/*.node
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |
-              pnpm nx run-many --target build --projects='athalar-js' -- --target x86_64-unknown-linux-musl
+              pnpm nx build athalar-js --configuration=production -- --target x86_64-unknown-linux-musl
               strip -x apps/*/*.node
           - host: macos-latest
             target: aarch64-apple-darwin
@@ -80,13 +80,13 @@ jobs:
               export CXX=$(xcrun -f clang++);
               SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
               export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
-              pnpm nx run-many --target build --projects='athalar-js' -- --target aarch64-apple-darwin
+              pnpm nx build athalar-js --configuration=production -- --target aarch64-apple-darwin
               strip -x apps/*/*.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |
-              pnpm nx run-many --target build --projects='athalar-js' -- --target aarch64-unknown-linux-gnu
+              pnpm nx build athalar-js --configuration=production -- --target aarch64-unknown-linux-gnu
               aarch64-unknown-linux-gnu-strip -x apps/*/*.node
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
@@ -94,7 +94,7 @@ jobs:
               sudo apt-get update
               sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf -y
             build: |
-              pnpm nx run-many --target build --projects='athalar-js' -- --target=armv7-unknown-linux-gnueabihf
+              pnpm nx build athalar-js --configuration=production -- --target=armv7-unknown-linux-gnueabihf
               arm-linux-gnueabihf-strip apps/*/*.node
           - host: ubuntu-latest
             target: aarch64-linux-android
@@ -104,7 +104,7 @@ jobs:
               export CXX="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++"
               export AR="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
               export PATH="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
-              pnpm nx run-many --target build --projects='athalar-js' -- --target aarch64-linux-android
+              pnpm nx build athalar-js --configuration=production -- --target aarch64-linux-android
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip apps/*/*.node
           - host: ubuntu-latest
             target: armv7-linux-androideabi
@@ -114,14 +114,14 @@ jobs:
               export CXX="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi24-clang++"
               export AR="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
               export PATH="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
-              pnpm nx run-many --target build --projects='athalar-js' -- --target armv7-linux-androideabi
+              pnpm nx build athalar-js --configuration=production -- --target armv7-linux-androideabi
               ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip apps/*/*.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |
               rustup target add aarch64-unknown-linux-musl
-              pnpm nx run-many --target build --projects='athalar-js' -- --target aarch64-unknown-linux-musl
+              pnpm nx build athalar-js --configuration=production -- --target aarch64-unknown-linux-musl
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip apps/*/*.node
           - host: windows-latest
             target: aarch64-pc-windows-msvc
@@ -139,7 +139,7 @@ jobs:
       - uses: pnpm/action-setup@v2.0.1
         name: Install pnpm
         with:
-          version: 7.6.0
+          version: 7.10.0
       - name: Install
         uses: actions-rs/toolchain@v1
         if: ${{ !matrix.settings.docker }}
@@ -197,9 +197,7 @@ jobs:
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
-            apps/athalar-js/*.node
-            apps/athalar-js/*.js
-            apps/athalar-js/*.d.ts
+            apps/athalar-js/dist
           if-no-files-found: error
 
   build-freebsd:
@@ -224,7 +222,7 @@ jobs:
           prepare: |
             pkg install -y curl node16 python3 gmake
             curl -qL https://www.npmjs.com/install.sh | sh
-            npm install --global --force pnpm@7.6.0
+            npm install --global --force pnpm@7.10.0
             curl https://sh.rustup.rs -sSf --output rustup.sh
             sh rustup.sh -y --profile minimal --default-toolchain stable
             export PATH="/usr/local/cargo/bin:$PATH"
@@ -235,6 +233,7 @@ jobs:
             echo "~~~~ pnpm --version ~~~~"
             pnpm --version
           run: |
+            set -eux
             export PATH="/usr/local/cargo/bin:$PATH"
             pnpm install
             pnpm nx build athalar-js
@@ -247,9 +246,7 @@ jobs:
         with:
           name: bindings-freebsd
           path: |
-            apps/athalar-js/*.node
-            apps/athalar-js/*.js
-            apps/athalar-js/*.d.ts
+            apps/athalar-js/dist
           if-no-files-found: error
 
   test-macOS-windows-binding:
@@ -277,7 +274,7 @@ jobs:
         name: Install pnpm
         id: pnpm-install
         with:
-          version: 7.6.0
+          version: 7.10.0
       - name: Install dependencies
         run: pnpm install
       - name: Download artifacts
@@ -312,7 +309,7 @@ jobs:
         name: Install pnpm
         id: pnpm-install
         with:
-          version: 7.6.0
+          version: 7.10.0
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -325,7 +322,7 @@ jobs:
           options: '-v ${{ github.workspace }}:/build -w /build'
           run: |
             set -eux
-            npm install --global --force pnpm@7.6.0
+            npm install --global --force pnpm@7.10.0
             pnpm install
             pnpm nx test athalar-js
 
@@ -352,7 +349,7 @@ jobs:
         name: Install pnpm
         id: pnpm-install
         with:
-          version: 7.6.0
+          version: 7.10.0
       - name: Set configuration
         run: |
           pnpm config set supportedArchitectures.libc "musl"
@@ -368,7 +365,7 @@ jobs:
           options: '-v ${{ github.workspace }}:/build -w /build'
           run: |
             set -eux
-            npm install --global --force pnpm@7.6.0
+            npm install --global --force pnpm@7.10.0
             pnpm install
             pnpm nx test athalar-js
 
@@ -396,7 +393,7 @@ jobs:
         name: Install pnpm
         id: pnpm-install
         with:
-          version: 7.6.0
+          version: 7.10.0
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -415,7 +412,7 @@ jobs:
             set -eux
             apt update
             apt install -y make gcc g++ python3
-            npm install --global --force pnpm@7.6.0
+            npm install --global --force pnpm@7.10.0
             pnpm install
             pnpm nx test athalar-js
 
@@ -443,7 +440,7 @@ jobs:
         name: Install pnpm
         id: pnpm-install
         with:
-          version: 7.6.0
+          version: 7.10.0
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -461,7 +458,7 @@ jobs:
           run: |
             set -eux
             apk add nodejs npm make gcc g++ python3
-            npm install --global --force pnpm@7.6.0
+            npm install --global --force pnpm@7.10.0
             pnpm install
             pnpm nx test athalar-js
 
@@ -489,7 +486,7 @@ jobs:
         name: Install pnpm
         id: pnpm-install
         with:
-          version: 7.6.0
+          version: 7.10.0
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -507,7 +504,7 @@ jobs:
             set -eux
             apt update
             apt install -y make gcc g++ python3
-            npm install --global --force pnpm@7.6.0
+            npm install --global --force pnpm@7.10.0
             pnpm install
             pnpm nx test athalar-js
 
@@ -536,9 +533,9 @@ jobs:
           path: apps/athalar-js
       - name: Move artifacts
         run: |
+          ls -laR apps/athalar-js
           cp apps/athalar-js/bindings-*/*.node apps/athalar-js/
           cp apps/athalar-js/bindings-freebsd/index.{js,d.ts} apps/athalar-js/
-          pnpm nx run athalar-js:artifacts
       - name: Version
         run: pnpm nx affected --target=version --base=$BASE_COMMIT --head=HEAD
       - name: Check if package needs to be published

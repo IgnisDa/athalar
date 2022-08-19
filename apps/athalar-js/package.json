@@ -14,18 +14,15 @@
     "type": "git",
     "url": "https://github.com/ignisda/athalar"
   },
+  "bin": {
+    "athalar": "dist/index.js"
+  },
   "license": "MIT",
   "main": "index.js",
   "files": [
-    "index.d.ts",
-    "index.js"
+    "dist/*"
   ],
   "scripts": {
-    "artifacts": "napi artifacts",
-    "bench": "node -r @swc-node/register benchmark/bench.ts",
-    "build": "tsc main.ts && mv main.js index.js && napi build --platform --release",
-    "debug": "napi build --platform",
-    "prepublishOnly": "napi prepublish -t npm",
     "test": "ava"
   },
   "ava": {
@@ -40,16 +37,10 @@
     ]
   },
   "dependencies": {
+    "chalk": "4.1.2",
+    "cmd-ts": "^0.11.0",
+    "lodash": "^4.17.21",
     "ts-morph": "^15.1.0"
-  },
-  "devDependencies": {
-    "@napi-rs/cli": "2.10.3",
-    "@swc-node/register": "1.5.1",
-    "ava": "4.3.1",
-    "benny": "3.7.1",
-    "chalk": "5.0.1",
-    "lint-staged": "13.0.3",
-    "npm-run-all": "4.1.5"
   },
   "engines": {
     "node": ">= 10"
