@@ -14,7 +14,7 @@ if [ "$(git rev-list "$last_remote_commit" ^"$last_local_commit")" ]; then
     last_remote_commit="$two_commits_ago"
 fi
 echo "Setting base=\"$last_remote_commit\" and head=\"$last_local_commit\""
-for target in "test" "lint" "build"; do
+for target in "lint" "build" "test"; do
     pnpm nx affected \
         --base="$last_remote_commit" \
         --target="$target" \

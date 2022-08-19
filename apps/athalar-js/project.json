@@ -1,0 +1,39 @@
+{
+  "dependencies": {
+    "required": [
+      "ts-morph"
+    ],
+    "development": [
+      "@napi-rs/cli",
+      "@swc-node/register",
+      "@vercel/ncc",
+      "ava",
+      "benny",
+      "chalk",
+      "lint-staged",
+      "npm-run-all",
+      "typescript"
+    ]
+  },
+  "projectType": "application",
+  "sourceRoot": "apps/athalar-js",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "apps/athalar-js/**/*.ts"
+        ]
+      },
+      "outputs": [
+        "{options.outputFile}"
+      ]
+    },
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "preset": "conventional"
+      }
+    }
+  }
+}

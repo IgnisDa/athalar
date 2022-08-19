@@ -1,0 +1,39 @@
+{
+  "name": "@ignisda/athalar-linux-x64-gnu",
+  "version": "0.1.0",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "athalar-js.linux-x64-gnu.node",
+  "files": [
+    "athalar-js.linux-x64-gnu.node"
+  ],
+  "description": "Generate typescript bindings for different adapters using Athalar.",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ignisda/athalar",
+    "directory": "apps/athalar-js/npm/linux-x64-gnu"
+  },
+  "libc": [
+    "glibc"
+  ]
+}

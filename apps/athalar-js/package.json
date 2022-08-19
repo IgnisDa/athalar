@@ -1,0 +1,79 @@
+{
+  "name": "@ignisda/athalar",
+  "version": "0.1.0",
+  "description": "Generate typescript bindings for different adapters using Athalar.",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ignisda/athalar"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "files": [
+    "index.d.ts",
+    "index.js"
+  ],
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "bench": "node -r @swc-node/register benchmark/bench.ts",
+    "build": "tsc main.ts && mv main.js index.js && napi build --platform --release",
+    "debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "ava"
+  },
+  "ava": {
+    "environmentVariables": {
+      "TS_NODE_PROJECT": "./tsconfig.json"
+    },
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "@swc-node/register"
+    ]
+  },
+  "dependencies": {
+    "ts-morph": "^15.1.0"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "2.10.3",
+    "@swc-node/register": "1.5.1",
+    "ava": "4.3.1",
+    "benny": "3.7.1",
+    "chalk": "5.0.1",
+    "lint-staged": "13.0.3",
+    "npm-run-all": "4.1.5"
+  },
+  "engines": {
+    "node": ">= 10"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "napi": {
+    "name": "athalar-js",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "x86_64-unknown-linux-musl",
+        "aarch64-unknown-linux-gnu",
+        "i686-pc-windows-msvc",
+        "armv7-unknown-linux-gnueabihf",
+        "aarch64-apple-darwin",
+        "aarch64-linux-android",
+        "x86_64-unknown-freebsd",
+        "aarch64-unknown-linux-musl",
+        "aarch64-pc-windows-msvc",
+        "armv7-linux-androideabi"
+      ]
+    }
+  }
+}

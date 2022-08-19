@@ -1,0 +1,564 @@
+name: CI for JS
+
+env:
+  DEBUG: napi:*
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
+
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '**'
+  pull_request: null
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    outputs:
+      base_commit: ${{ steps.base-commit.outputs.base_commit }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup
+        name: Setup environment
+      - name: Set base commit hash
+        id: base-commit
+        run: |
+          #!/usr/bin/env bash
+          commit=${{ github.event.before }}
+          if git branch --contains "$commit"; then
+            echo "No force push detected, continuing..."
+          else
+            # get the commit before this one
+            commit=$(git log --format="%H" -n 2 | tail -n 1)
+          fi
+          echo "BASE_COMMIT=$commit" >> $GITHUB_ENV
+          echo "::set-output name=base_commit::$commit"
+      - name: Lint all projects
+        run: |
+          pnpm nx affected --target=lint --parallel=6 --base=$BASE_COMMIT --head=HEAD
+
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    needs:
+      - lint
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: |
+              pnpm nx run-many --target build --projects='athalar-js'
+              strip -x apps/*/*.node
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            build: |
+              pnpm nx run-many --target build --projects='athalar-js'
+          - host: windows-latest
+            target: i686-pc-windows-msvc
+            build: |
+              pnpm nx run-many --target build --projects='athalar-js' -- --target i686-pc-windows-msvc
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+            build: |
+              pnpm nx run-many --target build --projects='athalar-js' -- --target x86_64-unknown-linux-gnu
+              strip -x apps/*/*.node
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: |
+              pnpm nx run-many --target build --projects='athalar-js' -- --target x86_64-unknown-linux-musl
+              strip -x apps/*/*.node
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: |
+              sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
+              export CC=$(xcrun -f clang);
+              export CXX=$(xcrun -f clang++);
+              SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
+              export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
+              pnpm nx run-many --target build --projects='athalar-js' -- --target aarch64-apple-darwin
+              strip -x apps/*/*.node
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            build: |
+              pnpm nx run-many --target build --projects='athalar-js' -- --target aarch64-unknown-linux-gnu
+              aarch64-unknown-linux-gnu-strip -x apps/*/*.node
+          - host: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf -y
+            build: |
+              pnpm nx run-many --target build --projects='athalar-js' -- --target=armv7-unknown-linux-gnueabihf
+              arm-linux-gnueabihf-strip apps/*/*.node
+          - host: ubuntu-latest
+            target: aarch64-linux-android
+            build: |
+              export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+              export CC="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+              export CXX="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++"
+              export AR="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
+              export PATH="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
+              pnpm nx run-many --target build --projects='athalar-js' -- --target aarch64-linux-android
+              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip apps/*/*.node
+          - host: ubuntu-latest
+            target: armv7-linux-androideabi
+            build: |
+              export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi24-clang"
+              export CC="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi24-clang"
+              export CXX="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi24-clang++"
+              export AR="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
+              export PATH="${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
+              pnpm nx run-many --target build --projects='athalar-js' -- --target armv7-linux-androideabi
+              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip apps/*/*.node
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: |
+              rustup target add aarch64-unknown-linux-musl
+              pnpm nx run-many --target build --projects='athalar-js' -- --target aarch64-unknown-linux-musl
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip apps/*/*.node
+          - host: windows-latest
+            target: aarch64-pc-windows-msvc
+            build: |
+              pnpm nx build athalar-js -- --target aarch64-pc-windows-msvc
+    name: stable - ${{ matrix.settings.target }} - node@16
+    runs-on: ${{ matrix.settings.host }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        if: ${{ !matrix.settings.docker }}
+        with:
+          node-version: 18
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        with:
+          version: 7.6.0
+      - name: Install
+        uses: actions-rs/toolchain@v1
+        if: ${{ !matrix.settings.docker }}
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+      - uses: Swatinem/rust-cache@v2
+        name: Cache rust dependencies
+        with:
+          key: ${{ runner.os }}-rust-store-${{ hashFiles('**/Cargo.lock') }}-${{ matrix.settings.target }}
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ matrix.settings.target }}-${{ matrix.node }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Setup toolchain
+        run: ${{ matrix.settings.setup }}
+        if: ${{ matrix.settings.setup }}
+        shell: bash
+      - name: Setup node x86
+        if: matrix.settings.target == 'i686-pc-windows-msvc'
+        run: pnpm config set supportedArchitectures.cpu "ia32"
+        shell: bash
+      - name: Install dependencies
+        run: pnpm install
+      - name: Setup node x86
+        uses: actions/setup-node@v3
+        if: matrix.settings.target == 'i686-pc-windows-msvc'
+        with:
+          node-version: 16
+          architecture: x86
+      - name: Build in docker
+        uses: addnab/docker-run-action@v3
+        if: ${{ matrix.settings.docker }}
+        with:
+          image: ${{ matrix.settings.docker }}
+          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
+          run: ${{ matrix.settings.build }}
+      - name: Build
+        run: ${{ matrix.settings.build }}
+        if: ${{ !matrix.settings.docker }}
+        shell: bash
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: |
+            apps/athalar-js/*.node
+            apps/athalar-js/*.js
+            apps/athalar-js/*.d.ts
+          if-no-files-found: error
+
+  build-freebsd:
+    runs-on: macos-12
+    needs:
+      - lint
+    name: Build FreeBSD
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        id: build
+        uses: vmactions/freebsd-vm@v0.2.3
+        env:
+          DEBUG: napi:*
+          RUSTUP_HOME: /usr/local/rustup
+          CARGO_HOME: /usr/local/cargo
+          RUSTUP_IO_THREADS: 1
+        with:
+          envs: DEBUG RUSTUP_HOME CARGO_HOME RUSTUP_IO_THREADS
+          usesh: true
+          mem: 3000
+          prepare: |
+            pkg install -y curl node16 python3 gmake
+            curl -qL https://www.npmjs.com/install.sh | sh
+            npm install --global --force pnpm@7.6.0
+            curl https://sh.rustup.rs -sSf --output rustup.sh
+            sh rustup.sh -y --profile minimal --default-toolchain stable
+            export PATH="/usr/local/cargo/bin:$PATH"
+            echo "~~~~ rustc --version ~~~~"
+            rustc --version
+            echo "~~~~ node -v ~~~~"
+            node -v
+            echo "~~~~ pnpm --version ~~~~"
+            pnpm --version
+          run: |
+            export PATH="/usr/local/cargo/bin:$PATH"
+            pnpm install
+            pnpm nx build athalar-js
+            strip -x apps/athalar-js/*.node
+            pnpm nx test athalar-js
+            rm -rf node_modules
+            rm -rf target
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bindings-freebsd
+          path: |
+            apps/athalar-js/*.node
+            apps/athalar-js/*.js
+            apps/athalar-js/*.d.ts
+          if-no-files-found: error
+
+  test-macOS-windows-binding:
+    name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+        node:
+          - '14'
+          - '16'
+          - '18'
+    runs-on: ${{ matrix.settings.host }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7.6.0
+      - name: Install dependencies
+        run: pnpm install
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: ./apps/athalar-js
+      - name: Test bindings
+        run: |
+          pnpm nx test athalar-js
+
+  test-linux-x64-gnu-binding:
+    name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - '14'
+          - '16'
+          - '18'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7.6.0
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-x86_64-unknown-linux-gnu
+          path: ./apps/athalar-js
+      - name: Setup and run tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: node:${{ matrix.node }}-slim
+          options: '-v ${{ github.workspace }}:/build -w /build'
+          run: |
+            set -eux
+            npm install --global --force pnpm@7.6.0
+            pnpm install
+            pnpm nx test athalar-js
+
+  test-linux-x64-musl-binding:
+    name: Test bindings on x86_64-unknown-linux-musl - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - '14'
+          - '16'
+          - '18'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7.6.0
+      - name: Set configuration
+        run: |
+          pnpm config set supportedArchitectures.libc "musl"
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-x86_64-unknown-linux-musl
+          path: ./apps/athalar-js
+      - name: Setup and run tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: node:${{ matrix.node }}-alpine
+          options: '-v ${{ github.workspace }}:/build -w /build'
+          run: |
+            set -eux
+            npm install --global --force pnpm@7.6.0
+            pnpm install
+            pnpm nx test athalar-js
+
+  test-linux-aarch64-gnu-binding:
+    name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - '14'
+          - '16'
+          - '18'
+    runs-on: ubuntu-latest
+    steps:
+      - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7.6.0
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-aarch64-unknown-linux-gnu
+          path: ./apps/athalar-js
+      - name: Set configuration
+        run: |
+          pnpm config set supportedArchitectures.cpu "arm64"
+          pnpm config set supportedArchitectures.libc "glibc"
+      - name: Setup and run tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/napi-rs/napi-rs/nodejs:aarch64-${{ matrix.node }}
+          options: '-v ${{ github.workspace }}:/build -w /build'
+          run: |
+            set -eux
+            apt update
+            apt install -y make gcc g++ python3
+            npm install --global --force pnpm@7.6.0
+            pnpm install
+            pnpm nx test athalar-js
+
+  test-linux-aarch64-musl-binding:
+    name: Test bindings on aarch64-unknown-linux-musl - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - '14'
+          - '16'
+          - '18'
+    runs-on: ubuntu-latest
+    steps:
+      - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7.6.0
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-aarch64-unknown-linux-musl
+          path: ./apps/athalar-js
+      - name: Set configuration
+        run: |
+          pnpm config set supportedArchitectures.cpu "arm64"
+          pnpm config set supportedArchitectures.libc "musl"
+      - name: Setup and run tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: multiarch/alpine:aarch64-latest-stable
+          options: '-v ${{ github.workspace }}:/build -w /build'
+          run: |
+            set -eux
+            apk add nodejs npm make gcc g++ python3
+            npm install --global --force pnpm@7.6.0
+            pnpm install
+            pnpm nx test athalar-js
+
+  test-linux-arm-gnueabihf-binding:
+    name: Test bindings on armv7-unknown-linux-gnueabihf - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - '14'
+          - '16'
+          - '18'
+    runs-on: ubuntu-latest
+    steps:
+      - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7.6.0
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-armv7-unknown-linux-gnueabihf
+          path: ./apps/athalar-js
+      - name: Set configuration
+        run: |
+          pnpm config set supportedArchitectures.cpu "arm"
+      - name: Setup and run tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/napi-rs/napi-rs/nodejs:armhf-${{ matrix.node }}
+          options: '-v ${{ github.workspace }}:/build -w /build'
+          run: |
+            set -eux
+            apt update
+            apt install -y make gcc g++ python3
+            npm install --global --force pnpm@7.6.0
+            pnpm install
+            pnpm nx test athalar-js
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - build-freebsd
+      - test-macOS-windows-binding
+      - test-linux-x64-gnu-binding
+      - test-linux-x64-musl-binding
+      - test-linux-aarch64-gnu-binding
+      - test-linux-aarch64-musl-binding
+      - test-linux-arm-gnueabihf-binding
+    steps:
+      - name: Store base commit in environment
+        run: |
+          echo "BASE_COMMIT=${{ needs.lint.outputs.base_commit }}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup
+        name: Setup environment
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: apps/athalar-js
+      - name: Move artifacts
+        run: |
+          cp apps/athalar-js/bindings-*/*.node apps/athalar-js/
+          cp apps/athalar-js/bindings-freebsd/index.{js,d.ts} apps/athalar-js/
+          pnpm nx run athalar-js:artifacts
+      - name: Version
+        run: pnpm nx affected --target=version --base=$BASE_COMMIT --head=HEAD
+      - name: Check if package needs to be published
+        id: check
+        run: |
+          set +e # the default shell provided by github actions has `-e`
+          node deployment/should-publish-to-npm.mjs
+          status=$?
+          echo "::set-output name=status::$status"
+          exit 0
+      - name: Configure credentials and publish to NPM
+        if: steps.check.outputs.status == 1
+        run: |
+          echo '//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}' > ~/.npmrc
+          cd apps/athalar-js
+          npm publish --access public
+      - name: Push to protected branch
+        if: steps.check.outputs.status == 1
+        uses: CasperWA/push-protected@v2.10.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          tags: true

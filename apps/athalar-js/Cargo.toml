@@ -1,0 +1,16 @@
+[package]
+authors = ["Diptesh Choudhuri <ignisda2001@gmail.com>"]
+edition = "2021"
+name = "athalar-js"
+version = "0.1.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+athalar_core = { path = "../../libs/athalar-core" }
+napi = "2"
+napi-derive = "2"
+
+[build-dependencies]
+napi-build = "2"

@@ -39,3 +39,9 @@ testem.log
 Thumbs.db
 .env
 /target
+*.node
+
+# project specific
+# athalar-js
+apps/athalar-js/index.js
+apps/athalar-js/index.d.ts

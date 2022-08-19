@@ -5,6 +5,7 @@
     "magicstack.edgedb",
     "timonwong.shellcheck",
     "tamasfe.even-better-toml",
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "rbbit.typescript-hero"
   ]
 }
