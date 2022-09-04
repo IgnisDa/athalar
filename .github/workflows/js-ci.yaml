@@ -82,12 +82,12 @@ jobs:
               export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
               pnpm nx build athalar-js --configuration=production -- --target aarch64-apple-darwin
               strip -x apps/*/*.node
-          - host: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            build: |
-              pnpm nx build athalar-js --configuration=production -- --target aarch64-unknown-linux-gnu
-              aarch64-unknown-linux-gnu-strip -x apps/*/*.node
+          # - host: ubuntu-latest
+          #   target: aarch64-unknown-linux-gnu
+          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+          #   build: |
+          #     pnpm nx build athalar-js --configuration=production -- --target aarch64-unknown-linux-gnu
+          #     aarch64-unknown-linux-gnu-strip -x apps/*/*.node
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
             setup: |
@@ -200,54 +200,54 @@ jobs:
             apps/athalar-js/dist
           if-no-files-found: error
 
-  build-freebsd:
-    runs-on: macos-12
-    needs:
-      - lint
-    name: Build FreeBSD
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build
-        id: build
-        uses: vmactions/freebsd-vm@v0.2.3
-        env:
-          DEBUG: napi:*
-          RUSTUP_HOME: /usr/local/rustup
-          CARGO_HOME: /usr/local/cargo
-          RUSTUP_IO_THREADS: 1
-        with:
-          envs: DEBUG RUSTUP_HOME CARGO_HOME RUSTUP_IO_THREADS
-          usesh: true
-          mem: 3000
-          prepare: |
-            pkg install -y curl node16 python3 gmake
-            curl -qL https://www.npmjs.com/install.sh | sh
-            npm install --global --force pnpm@7.10.0
-            curl https://sh.rustup.rs -sSf --output rustup.sh
-            sh rustup.sh -y --profile minimal --default-toolchain stable
-            export PATH="/usr/local/cargo/bin:$PATH"
-            echo "~~~~ rustc --version ~~~~"
-            rustc --version
-            echo "~~~~ node -v ~~~~"
-            node -v
-            echo "~~~~ pnpm --version ~~~~"
-            pnpm --version
-          run: |
-            set -eux
-            export PATH="/usr/local/cargo/bin:$PATH"
-            pnpm install
-            pnpm nx build athalar-js
-            strip -x apps/athalar-js/*.node
-            pnpm nx test athalar-js
-            rm -rf node_modules
-            rm -rf target
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: bindings-freebsd
-          path: |
-            apps/athalar-js/dist
-          if-no-files-found: error
+  # build-freebsd:
+  #   runs-on: macos-12
+  #   needs:
+  #     - lint
+  #   name: Build FreeBSD
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Build
+  #       id: build
+  #       uses: vmactions/freebsd-vm@v0.2.3
+  #       env:
+  #         DEBUG: napi:*
+  #         RUSTUP_HOME: /usr/local/rustup
+  #         CARGO_HOME: /usr/local/cargo
+  #         RUSTUP_IO_THREADS: 1
+  #       with:
+  #         envs: DEBUG RUSTUP_HOME CARGO_HOME RUSTUP_IO_THREADS
+  #         usesh: true
+  #         mem: 3000
+  #         prepare: |
+  #           pkg install -y curl node16 python3 gmake
+  #           curl -qL https://www.npmjs.com/install.sh | sh
+  #           npm install --global --force pnpm@7.10.0
+  #           curl https://sh.rustup.rs -sSf --output rustup.sh
+  #           sh rustup.sh -y --profile minimal --default-toolchain stable
+  #           export PATH="/usr/local/cargo/bin:$PATH"
+  #           echo "~~~~ rustc --version ~~~~"
+  #           rustc --version
+  #           echo "~~~~ node -v ~~~~"
+  #           node -v
+  #           echo "~~~~ pnpm --version ~~~~"
+  #           pnpm --version
+  #         run: |
+  #           set -eux
+  #           export PATH="/usr/local/cargo/bin:$PATH"
+  #           pnpm install
+  #           pnpm nx build athalar-js
+  #           strip -x apps/athalar-js/*.node
+  #           pnpm nx test athalar-js
+  #           rm -rf node_modules
+  #           rm -rf target
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: bindings-freebsd
+  #         path: |
+  #           apps/athalar-js/dist
+  #         if-no-files-found: error
 
   test-macOS-windows-binding:
     name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
@@ -369,52 +369,52 @@ jobs:
             pnpm install
             pnpm nx test athalar-js
 
-  test-linux-aarch64-gnu-binding:
-    name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
-    needs:
-      - build
-    strategy:
-      fail-fast: false
-      matrix:
-        node:
-          - '14'
-          - '16'
-          - '18'
-    runs-on: ubuntu-latest
-    steps:
-      - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
-      - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
-          check-latest: true
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7.10.0
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-aarch64-unknown-linux-gnu
-          path: ./apps/athalar-js
-      - name: Set configuration
-        run: |
-          pnpm config set supportedArchitectures.cpu "arm64"
-          pnpm config set supportedArchitectures.libc "glibc"
-      - name: Setup and run tests
-        uses: addnab/docker-run-action@v3
-        with:
-          image: ghcr.io/napi-rs/napi-rs/nodejs:aarch64-${{ matrix.node }}
-          options: '-v ${{ github.workspace }}:/build -w /build'
-          run: |
-            set -eux
-            apt update
-            apt install -y make gcc g++ python3
-            npm install --global --force pnpm@7.10.0
-            pnpm install
-            pnpm nx test athalar-js
+  # test-linux-aarch64-gnu-binding:
+  #   name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
+  #   needs:
+  #     - build
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       node:
+  #         - '14'
+  #         - '16'
+  #         - '18'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+  #     - uses: actions/checkout@v3
+  #     - name: Setup node
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: ${{ matrix.node }}
+  #         check-latest: true
+  #     - uses: pnpm/action-setup@v2.0.1
+  #       name: Install pnpm
+  #       id: pnpm-install
+  #       with:
+  #         version: 7.10.0
+  #     - name: Download artifacts
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: bindings-aarch64-unknown-linux-gnu
+  #         path: ./apps/athalar-js
+  #     - name: Set configuration
+  #       run: |
+  #         pnpm config set supportedArchitectures.cpu "arm64"
+  #         pnpm config set supportedArchitectures.libc "glibc"
+  #     - name: Setup and run tests
+  #       uses: addnab/docker-run-action@v3
+  #       with:
+  #         image: ghcr.io/napi-rs/napi-rs/nodejs:aarch64-${{ matrix.node }}
+  #         options: '-v ${{ github.workspace }}:/build -w /build'
+  #         run: |
+  #           set -eux
+  #           apt update
+  #           apt install -y make gcc g++ python3
+  #           npm install --global --force pnpm@7.10.0
+  #           pnpm install
+  #           pnpm nx test athalar-js
 
   test-linux-aarch64-musl-binding:
     name: Test bindings on aarch64-unknown-linux-musl - node@${{ matrix.node }}
@@ -513,11 +513,11 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - lint
-      - build-freebsd
+      # - build-freebsd
       - test-macOS-windows-binding
       - test-linux-x64-gnu-binding
       - test-linux-x64-musl-binding
-      - test-linux-aarch64-gnu-binding
+      # - test-linux-aarch64-gnu-binding
       - test-linux-aarch64-musl-binding
       - test-linux-arm-gnueabihf-binding
     steps:
@@ -534,8 +534,9 @@ jobs:
       - name: Move artifacts
         run: |
           ls -laR apps/athalar-js
-          cp apps/athalar-js/bindings-*/*.node apps/athalar-js/
-          cp apps/athalar-js/bindings-freebsd/index.{js,d.ts} apps/athalar-js/
+          mkdir -p apps/athalar-js/dist
+          cp apps/athalar-js/bindings-*/*.node apps/athalar-js/dist/
+          cp apps/athalar-js/bindings-x86_64-unknown-linux-gnu/index.{js,d.ts} apps/athalar-js/dist/
       - name: Version
         run: pnpm nx affected --target=version --base=$BASE_COMMIT --head=HEAD
       - name: Check if package needs to be published
