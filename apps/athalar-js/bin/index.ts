@@ -14,8 +14,7 @@ const generateCmd = command({
   args: {
     path: positional({
       type: optional(ExistingPath),
-      description:
-        'The path where the athalar project is present, defaults to "$PWD"',
+      description: `The path where the ${BINARY} project is present, defaults to "$PWD"`,
     }),
   },
   handler: async ({ path }) => {
@@ -45,7 +44,7 @@ const generateCmd = command({
     }
     for (const file of project.getSourceFiles()) {
       file.formatText();
-      console.log(file.getFullText());
+      // console.log(file.getFullText());
       await file.save();
     }
   },
