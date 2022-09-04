@@ -3,6 +3,8 @@ import { SourceFile, VariableDeclarationKind } from 'ts-morph';
 
 import { AthalarJsBinding } from '..';
 
+export const BINARY = 'athalar'
+
 const DELIMITER = chalk.redBright('"');
 
 export const logText = (preText: string, msg: string) => {

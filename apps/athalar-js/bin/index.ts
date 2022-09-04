@@ -5,7 +5,7 @@ import { uniq } from 'lodash';
 import { Project } from 'ts-morph';
 
 import { AthalarJs, AthalarJsBindingType } from '..';
-import { addClassValidatorBindingsToProject, logText } from '../js-src';
+import { addClassValidatorBindingsToProject, BINARY, logText } from '../js-src';
 
 const GENERATE_SUBCOMMAND = 'generate';
 
@@ -15,11 +15,14 @@ const generateCmd = command({
     path: positional({
       type: optional(ExistingPath),
       description:
-        'The path where the athalar project is present, defaults to $PWD',
+        'The path where the athalar project is present, defaults to "$PWD"',
     }),
   },
   handler: async ({ path }) => {
-    if (!path) path = process.cwd();
+    if (!path) {
+      path = process.cwd();
+      logText(`No path provided, using`, path);
+    }
     const athalarProject = AthalarJs.fromPath(path);
     // const report = ath.getValidationReports();
     const project = new Project();
@@ -49,8 +52,8 @@ const generateCmd = command({
 });
 
 const mainCmd = subcommands({
-  name: 'athalar',
-  description: 'Generate bindings for a particular athalar project',
+  name: BINARY,
+  description: `Generate bindings for a particular ${BINARY} project`,
   cmds: { [GENERATE_SUBCOMMAND]: generateCmd },
 });
 
