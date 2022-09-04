@@ -20,6 +20,8 @@ jobs:
       base_commit: ${{ steps.base-commit.outputs.base_commit }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup
         name: Setup environment
       - name: Set base commit hash
@@ -82,12 +84,12 @@ jobs:
               export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
               pnpm nx build athalar-js --configuration=production -- --target aarch64-apple-darwin
               strip -x apps/*/*.node
-          # - host: ubuntu-latest
-          #   target: aarch64-unknown-linux-gnu
-          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-          #   build: |
-          #     pnpm nx build athalar-js --configuration=production -- --target aarch64-unknown-linux-gnu
-          #     aarch64-unknown-linux-gnu-strip -x apps/*/*.node
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            build: |
+              pnpm nx build athalar-js --configuration=production -- --target aarch64-unknown-linux-gnu
+              aarch64-unknown-linux-gnu-strip -x apps/*/*.node
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
             setup: |
@@ -185,7 +187,7 @@ jobs:
         if: ${{ matrix.settings.docker }}
         with:
           image: ${{ matrix.settings.docker }}
-          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
+          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build -v /home/runner/.local/share/pnpm/store/v3:/build/.pnpm-store/v3'
           run: ${{ matrix.settings.build }}
       - name: Build
         run: ${{ matrix.settings.build }}
@@ -307,7 +309,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-slim
-          options: '-v ${{ github.workspace }}:/build -w /build'
+          options: '-v ${{ github.workspace }}:/build -w /build -v /home/runner/.local/share/pnpm/store/v3:/build/.pnpm-store/v3'
           run: |
             set -eux
             npm install --global --force pnpm@7.10.0
@@ -344,7 +346,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-alpine
-          options: '-v ${{ github.workspace }}:/build -w /build'
+          options: '-v ${{ github.workspace }}:/build -w /build -v /home/runner/.local/share/pnpm/store/v3:/build/.pnpm-store/v3'
           run: |
             set -eux
             npm install --global --force pnpm@7.10.0
@@ -383,7 +385,7 @@ jobs:
   #       uses: addnab/docker-run-action@v3
   #       with:
   #         image: ghcr.io/napi-rs/napi-rs/nodejs:aarch64-${{ matrix.node }}
-  #         options: '-v ${{ github.workspace }}:/build -w /build'
+  #         options: '-v ${{ github.workspace }}:/build -w /build -v /home/runner/.local/share/pnpm/store/v3:/build/.pnpm-store/v3'
   #         run: |
   #           set -eux
   #           apt update
@@ -424,7 +426,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: multiarch/alpine:aarch64-latest-stable
-          options: '-v ${{ github.workspace }}:/build -w /build'
+          options: '-v ${{ github.workspace }}:/build -w /build -v /home/runner/.local/share/pnpm/store/v3:/build/.pnpm-store/v3'
           run: |
             set -eux
             apk add nodejs npm make gcc g++ python3
@@ -463,7 +465,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/napi-rs/napi-rs/nodejs:armhf-${{ matrix.node }}
-          options: '-v ${{ github.workspace }}:/build -w /build'
+          options: '-v ${{ github.workspace }}:/build -w /build -v /home/runner/.local/share/pnpm/store/v3:/build/.pnpm-store/v3'
           run: |
             set -eux
             apt update
@@ -485,24 +487,25 @@ jobs:
       - test-linux-aarch64-musl-binding
       - test-linux-arm-gnueabihf-binding
     steps:
-      - name: Store base commit in environment
-        run: |
-          echo "BASE_COMMIT=${{ needs.lint.outputs.base_commit }}" >> $GITHUB_ENV
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup
         name: Setup environment
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
           path: apps/athalar-js
-      - name: Move artifacts
+      - name: Configure github identify
+        shell: bash
         run: |
-          ls -laR apps/athalar-js
-          mkdir -p apps/athalar-js/dist
-          cp apps/athalar-js/bindings-*/*.node apps/athalar-js/dist/
-          cp apps/athalar-js/bindings-x86_64-unknown-linux-gnu/index.{js,d.ts} apps/athalar-js/dist/
+          git config --global user.name "Github Actions"
+          git config --global user.email "-"
       - name: Version
-        run: pnpm nx affected --target=version --base=$BASE_COMMIT --head=HEAD
+        run: |
+          last_tag=$(git tag -l "athalar-js-*" | tail -n 1)
+          echo "Last calculated tag is: $last_tag..."
+          pnpm nx affected --target=version --base=$last_tag --head=HEAD
       - name: Check if package needs to be published
         id: check
         run: |
@@ -511,6 +514,13 @@ jobs:
           status=$?
           echo "::set-output name=status::$status"
           exit 0
+      - name: Move artifacts
+        if: steps.check.outputs.status == 1
+        run: |
+          cd apps/athalar-js
+          mkdir dist
+          cp bindings-*/*.node dist/
+          cp bindings-x86_64-unknown-linux-gnu/index.{js,d.ts} dist/
       - name: Configure credentials and publish to NPM
         if: steps.check.outputs.status == 1
         run: |
