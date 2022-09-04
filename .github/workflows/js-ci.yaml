@@ -164,7 +164,6 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ matrix.settings.target }}-${{ matrix.node }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
@@ -266,15 +265,10 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
+      - uses: ./.github/actions/setup
+        name: Setup environment
         with:
           node-version: ${{ matrix.node }}
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7.10.0
       - name: Install dependencies
         run: pnpm install
       - name: Download artifacts
@@ -300,16 +294,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
+      - uses: ./.github/actions/setup
+        name: Setup environment
         with:
           node-version: ${{ matrix.node }}
-          check-latest: true
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7.10.0
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -340,16 +328,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
+      - uses: ./.github/actions/setup
+        name: Setup environment
         with:
           node-version: ${{ matrix.node }}
-          check-latest: true
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7.10.0
       - name: Set configuration
         run: |
           pnpm config set supportedArchitectures.libc "musl"
@@ -384,16 +366,10 @@ jobs:
   #   steps:
   #     - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
   #     - uses: actions/checkout@v3
-  #     - name: Setup node
-  #       uses: actions/setup-node@v3
+  #     - uses: ./.github/actions/setup
+  #       name: Setup environment
   #       with:
   #         node-version: ${{ matrix.node }}
-  #         check-latest: true
-  #     - uses: pnpm/action-setup@v2.0.1
-  #       name: Install pnpm
-  #       id: pnpm-install
-  #       with:
-  #         version: 7.10.0
   #     - name: Download artifacts
   #       uses: actions/download-artifact@v3
   #       with:
@@ -431,16 +407,10 @@ jobs:
     steps:
       - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
       - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
+      - uses: ./.github/actions/setup
+        name: Setup environment
         with:
           node-version: ${{ matrix.node }}
-          check-latest: true
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7.10.0
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -477,16 +447,10 @@ jobs:
     steps:
       - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
       - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
+      - uses: ./.github/actions/setup
+        name: Setup environment
         with:
           node-version: ${{ matrix.node }}
-          check-latest: true
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7.10.0
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
