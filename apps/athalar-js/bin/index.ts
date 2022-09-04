@@ -5,7 +5,7 @@ import { uniq } from 'lodash';
 import { Project } from 'ts-morph';
 
 import { AthalarJs, AthalarJsBindingType } from '..';
-import { logText } from '../js-src';
+import { addClassValidatorBindingsToProject, logText } from '../js-src';
 
 const GENERATE_SUBCOMMAND = 'generate';
 
@@ -20,46 +20,30 @@ const generateCmd = command({
   },
   handler: async ({ path }) => {
     if (!path) path = process.cwd();
-    const ath = AthalarJs.fromPath(path);
+    const athalarProject = AthalarJs.fromPath(path);
     // const report = ath.getValidationReports();
-    for (const bindingType of [
-      { import: 'class-validator', type: AthalarJsBindingType.ClassValidator },
-    ]) {
-      const bindings = ath.getInformation(bindingType.type);
-      const project = new Project();
-      for (const binding of bindings) {
+    const project = new Project();
+    const bindings = athalarProject.getInformation();
+    for (const binding of bindings) {
+      const sourceFile = project.createSourceFile(binding.output, undefined, {
+        overwrite: true,
+      });
+      if (binding.variety === AthalarJsBindingType.ClassValidator) {
         logText(`Processing binding for`, binding.output);
-        const sourceFile = project.createSourceFile(binding.output, undefined, {
-          overwrite: true,
-        });
-        sourceFile.addImportDeclaration({
-          namedImports: uniq(
-            bindings.flatMap((b) => b.atoms.flatMap((a) => a.validators))
-          ),
-          moduleSpecifier: bindingType.import,
-        });
-        // create class
-        const sourceClass = sourceFile.addClass({
-          name: binding.details.className,
-          isExported: true,
-        });
-        for (const atom of binding.atoms) {
-          // add properties to the class
-          sourceClass.addProperty({
-            name: atom.name,
-            type: atom.kind,
-            decorators: atom.validators.map((v) => ({
-              name: v,
-              arguments: [],
-            })),
-            docs: atom.description ? [atom.description] : [],
-          });
-        }
-        for (const file of project.getSourceFiles()) {
-          // console.log(file.getFullText());
-          await file.save();
-        }
+        const allImports = uniq(
+          bindings.flatMap((b) => b.atoms.flatMap((a) => a.validators))
+        );
+        await addClassValidatorBindingsToProject(
+          sourceFile,
+          binding,
+          allImports
+        );
       }
+    }
+    for (const file of project.getSourceFiles()) {
+      file.formatText();
+      console.log(file.getFullText());
+      await file.save();
     }
   },
 });

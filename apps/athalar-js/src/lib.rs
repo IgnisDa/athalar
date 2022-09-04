@@ -92,7 +92,7 @@ impl AthalarJs {
 
     /// Get the final information that will be used to generate the bindings
     #[napi]
-    pub fn get_information(&self, variety: AthalarJsBindingType) -> Result<Vec<AthalarJsBinding>> {
+    pub fn get_information(&self) -> Result<Vec<AthalarJsBinding>> {
         let mut bindings = vec![];
         let information = self.0.get_information().unwrap();
         for (generator, atoms) in information.generators.iter() {
@@ -129,6 +129,7 @@ impl AthalarJs {
                     };
                     _atoms.push(_atom);
                 }
+                let variety = AthalarJsBindingType::from(binding.profile.clone());
                 let _binding = AthalarJsBinding {
                     output,
                     atoms: _atoms,

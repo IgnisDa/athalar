@@ -1,3 +1,4 @@
+use athalar_core::AthalarAdapter;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
@@ -9,4 +10,12 @@ pub use class_validator::{ClassValidator, ClassValidatorProfile};
 #[napi]
 pub enum AthalarJsBindingType {
     ClassValidator,
+}
+
+impl From<AthalarAdapter> for AthalarJsBindingType {
+    fn from(aa: AthalarAdapter) -> Self {
+        match aa {
+            AthalarAdapter::ClassValidator(_) => Self::ClassValidator,
+        }
+    }
 }
