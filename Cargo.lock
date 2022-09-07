@@ -29,6 +29,7 @@ version = "0.0.1"
 dependencies = [
  "derive_builder",
  "glob",
+ "hashbag",
  "relative-path",
  "serde",
  "serde_yaml",
@@ -159,6 +160,12 @@ name = "glob"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b919933a397b79c37e33b77bb2aa3dc8eb6e165ad809e58ff75bc7db2e34574"
+
+[[package]]
+name = "hashbag"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c759d39a226f021f488936b2d3a26b16d9a1246e931adcec5c5b057388adceb3"
 
 [[package]]
 name = "hashbrown"

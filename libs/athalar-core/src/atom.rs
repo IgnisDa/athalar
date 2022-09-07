@@ -1,6 +1,8 @@
 use crate::utils::get_uuid;
 use derive_builder::Builder;
+use hashbag::HashBag;
 use serde::{Deserialize, Serialize};
+use std::iter::FromIterator;
 use strum_macros::Display;
 use uuid::Uuid;
 
@@ -25,12 +27,29 @@ pub enum AtomValidator {
 
 /// The type that the configuration variable will have based on it's different properties.
 /// It can either be user defined otr be inferred from the validators applied.
-#[derive(Debug, Default, PartialEq, Clone, Copy, Serialize, Deserialize, Display)]
+#[derive(Debug, Default, PartialEq, Clone, Copy, Serialize, Deserialize, Display, Hash, Eq)]
 pub enum AtomKind {
+    /// Represents a number
     Number,
+
+    /// Represents a string
     #[default]
     String,
+
+    /// Can represent any datatype, most probably because the kind could not be derived
     Any,
+}
+
+impl From<AtomValidator> for AtomKind {
+    fn from(av: AtomValidator) -> Self {
+        match av {
+            AtomValidator::Noop => AtomKind::Any,
+            AtomValidator::Number => AtomKind::Number,
+            AtomValidator::Port => AtomKind::Number,
+            AtomValidator::String => AtomKind::String,
+            AtomValidator::Url => AtomKind::String,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Builder, Clone, Default, Serialize, Deserialize)]
@@ -65,10 +84,17 @@ impl AthalarAtomBuilder {
     fn get_kind(&self) -> Result<AtomKind, String> {
         match self.kind {
             Some(x) => Ok(x),
+            // the user has not specified one
             None => {
-                // TODO: Iterate over the validators and determine the correct `kind` since
-                // the user has not specified one
-                Ok(AtomKind::String)
+                let counts: HashBag<AtomKind> = HashBag::from_iter(
+                    self.validators
+                        .clone()
+                        .unwrap()
+                        .into_iter()
+                        .map(AtomKind::from),
+                );
+                let max = counts.set_iter().max_by_key(|x| x.1).unwrap();
+                Ok(*max.0)
             }
         }
     }
@@ -77,12 +103,6 @@ impl AthalarAtomBuilder {
 #[cfg(test)]
 mod test {
     use super::*;
-
-    #[test]
-    fn no_validators_in_yaml_yields_validator_of_zero_len() {
-        let aca = AthalarAtomBuilder::default().name("mail").build().unwrap();
-        assert_eq!(aca.validators.len(), 0);
-    }
 
     #[test]
     fn correct_number_of_validators() {

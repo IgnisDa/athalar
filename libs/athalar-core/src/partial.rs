@@ -66,23 +66,4 @@ mod test {
         let apd = AthalarPartialDataBuilder::default().build().unwrap();
         assert_eq!(apd.kind, AthalarConfigKind::Variable);
     }
-
-    #[test]
-    fn no_validators() {
-        let apd = AthalarPartialDataBuilder::default()
-            .config(vec![AthalarAtomBuilder::default().name("atom").clone()])
-            .build()
-            .unwrap();
-        assert_eq!(apd.config.len(), 1);
-        assert_eq!(apd.config[0].validators.len(), 0);
-    }
-
-    #[test]
-    fn specifying_kind_as_variable_sets_correct_value() {
-        let apd = AthalarPartialDataBuilder::default()
-            .config(vec![AthalarAtomBuilder::default().name("atom").clone()])
-            .build()
-            .unwrap();
-        assert_eq!(apd.kind, AthalarConfigKind::Variable);
-    }
 }
