@@ -8,8 +8,13 @@ import { AthalarJs, AthalarJsBindingType } from '..';
 import { addClassValidatorBindingsToProject, BINARY, logText } from '../js-src';
 
 const GENERATE_SUBCOMMAND = 'generate';
+const LEADING_COMMENT = `/*
+ * -----------------------------------------------------
+ * THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+ * -----------------------------------------------------
+ */`;
 
-const generateCmd = command({
+const generateCommand = command({
   name: GENERATE_SUBCOMMAND,
   args: {
     path: positional({
@@ -22,38 +27,43 @@ const generateCmd = command({
       path = process.cwd();
       logText(`No path provided, using`, path);
     }
-    const athalarProject = AthalarJs.fromPath(path);
-    // const report = ath.getValidationReports();
-    const project = new Project();
-    const bindings = athalarProject.getInformation();
-    for (const binding of bindings) {
-      const sourceFile = project.createSourceFile(binding.output, undefined, {
-        overwrite: true,
-      });
-      if (binding.variety === AthalarJsBindingType.ClassValidator) {
-        logText(`Processing binding for`, binding.output);
-        const allImports = uniq(
-          bindings.flatMap((b) => b.atoms.flatMap((a) => a.validators))
-        );
-        await addClassValidatorBindingsToProject(
-          sourceFile,
-          binding,
-          allImports
-        );
+    try {
+      const athalarProject = AthalarJs.fromPath(path);
+      // const report = ath.getValidationReports();
+      const project = new Project();
+      const bindings = athalarProject.getInformation();
+      for (const binding of bindings) {
+        const sourceFile = project.createSourceFile(binding.output, undefined, {
+          overwrite: true,
+        });
+        sourceFile.addStatements(LEADING_COMMENT);
+        if (binding.variety === AthalarJsBindingType.ClassValidator) {
+          logText(`Processing binding for`, binding.output);
+          const allImports = uniq(
+            bindings.flatMap((b) => b.atoms.flatMap((a) => a.validators))
+          );
+          await addClassValidatorBindingsToProject(
+            sourceFile,
+            binding,
+            allImports
+          );
+        }
       }
-    }
-    for (const file of project.getSourceFiles()) {
-      file.formatText();
-      // console.log(file.getFullText());
-      await file.save();
+      for (const file of project.getSourceFiles()) {
+        file.formatText();
+        console.log(file.getFullText());
+        await file.save();
+      }
+    } catch (e: any) {
+      console.error(`Encountered error: "${e.message}"`);
     }
   },
 });
 
-const mainCmd = subcommands({
+const mainCommand = subcommands({
   name: BINARY,
   description: `Generate bindings for a particular ${BINARY} project`,
-  cmds: { [GENERATE_SUBCOMMAND]: generateCmd },
+  cmds: { [GENERATE_SUBCOMMAND]: generateCommand },
 });
 
-run(mainCmd, process.argv.slice(2));
+run(mainCommand, process.argv.slice(2));
