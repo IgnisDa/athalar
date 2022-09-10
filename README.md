@@ -102,7 +102,7 @@ Athalar projects live under a common directory and all files have a common prefi
 `*.ath.yaml`. An `athalar.toml` file is also expected at the root of the project. This can
 be used to configure the behavior of athalar.
 
-```yaml
+```toml
 # this is necessary
 version = "1"
 
