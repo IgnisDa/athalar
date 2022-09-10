@@ -1,6 +1,6 @@
 {
   "name": "@ignisda/athalar",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Generate typescript bindings for different adapters using Athalar.",
   "keywords": [
     "napi-rs",
