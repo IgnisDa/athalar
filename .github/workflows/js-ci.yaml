@@ -7,7 +7,7 @@ env:
 on:
   push:
     branches:
-      - main
+      - '*'
     tags-ignore:
       - '**'
   pull_request: null
@@ -512,7 +512,7 @@ jobs:
       # - test-linux-aarch64-gnu-binding
       - test-linux-aarch64-musl-binding
       - test-linux-arm-gnueabihf-binding
-    if: "needs.lint.outputs.should_continue == 'yes'"
+    if: "needs.lint.outputs.should_continue == 'yes' && github.ref == 'refs/heads/main'"
     steps:
       - uses: actions/checkout@v3
         with:
