@@ -1,8 +1,8 @@
 {
   "projects": {
     "athalar-js": "apps/athalar-js",
-    "athalar-py": "apps/athalar-py",
     "athalar_core": "libs/athalar-core",
+    "athalar_cli": "apps/cli",
     "config": "apps/config",
     "generated": "libs/generated"
   },
