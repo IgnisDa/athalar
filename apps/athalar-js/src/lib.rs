@@ -2,14 +2,13 @@ mod atoms;
 mod bindings;
 mod constants;
 
-use athalar_core::{constants::ATHALAR_CONFIG_FILE, Athalar, AthalarAdapter, AthalarConfig};
+use athalar_core::{from_path, Athalar, AthalarAdapter};
 use atoms::AthalarJsKind;
 use bindings::{AthalarJsBindingType, ClassValidator, ClassValidatorProfile};
 use constants::DEFAULT_CLASS_NAME;
 use itertools::{EitherOrBoth, Itertools};
 use napi::{Error, Result, Status};
 use napi_derive::napi;
-use std::{fs, path::PathBuf};
 
 #[derive(Debug)]
 #[napi(object)]
@@ -44,19 +43,9 @@ impl AthalarJs {
     /// * path: A fully qualified valid path. Panics if the path is not valid.
     #[napi(factory)]
     pub fn from_path(path: String) -> Result<Self> {
-        let project_path = PathBuf::from(&path).join(ATHALAR_CONFIG_FILE);
-        let config_file_contents = match fs::read_to_string(&project_path) {
-            Ok(x) => x,
-            Err(_) => {
-                return Err(Error {
-                    status: Status::GenericFailure,
-                    reason: format!("Config file does not exist at: {:?}", &project_path),
-                });
-            }
-        };
-        let config = AthalarConfig::from_str_and_source(&config_file_contents, &path).unwrap();
-        let athalar = Athalar::from_config(config);
-        Ok(Self(athalar))
+        from_path(path)
+            .map(Self)
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))
     }
 
     /// Get validation reports for the project

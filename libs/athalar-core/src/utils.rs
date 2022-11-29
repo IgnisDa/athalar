@@ -1,11 +1,14 @@
 //! Common utilities that can be used to work with athalar projects.
 
 use crate::{
+    constants::ATHALAR_CONFIG_FILE,
     generator::{AthalarGenerator, AthalarGeneratorBuilder, AthalarGeneratorData},
     partial::{AthalarPartial, AthalarPartialBuilder, AthalarPartialData},
+    Athalar, AthalarConfig,
 };
 use glob::glob;
 use std::{
+    error::Error,
     fs,
     path::{Path, PathBuf, MAIN_SEPARATOR},
 };
@@ -74,4 +77,17 @@ pub fn load_generators(dir: &Path) -> Vec<AthalarGenerator> {
 
 pub(crate) fn get_uuid() -> Uuid {
     Uuid::new_v4()
+}
+
+pub fn from_path(path: String) -> Result<Athalar, Box<dyn Error>> {
+    let project_path = PathBuf::from(&path).join(ATHALAR_CONFIG_FILE);
+    let config_file_contents = match fs::read_to_string(&project_path) {
+        Ok(x) => x,
+        Err(_) => {
+            return Err(format!("Config file does not exist at: {:?}", &project_path).into());
+        }
+    };
+    let config = AthalarConfig::from_str_and_source(&config_file_contents, &path).unwrap();
+    let athalar = Athalar::from_config(config);
+    Ok(athalar)
 }
