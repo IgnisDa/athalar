@@ -26,7 +26,7 @@ use std::fs;
 /// Once these phases are complete, it returns an information table (via
 /// [this](Self::get_information) method) that can be used by the consuming library to
 /// generate the desired binding.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Athalar {
     /// The configuration to use for the Athalar instance
     config: AthalarConfig,

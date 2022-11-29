@@ -10,7 +10,7 @@ use uuid::Uuid;
 // the correct modification to the code (for example decorators for class-validator
 // bindings).
 /// The different validators that can be applied to the different configuration variables
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Display)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Display)]
 pub enum AtomValidator {
     /// Checks if the value is a number.
     Number,
@@ -52,7 +52,7 @@ impl From<AtomValidator> for AtomKind {
     }
 }
 
-#[derive(Debug, PartialEq, Builder, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Builder, Clone, Default, Serialize, Deserialize)]
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarAtom {
     /// A unique ID assigned to this atom, should be used as an identifier

@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use uuid::Uuid;
 
 /// Contains information about a discovered partial in the project.
-#[derive(Debug, PartialEq, Builder, Clone)]
+#[derive(Debug, PartialEq, Eq, Builder, Clone)]
 pub struct AthalarPartial {
     /// A unique ID assigned to this atom, should be used as an identifier
     #[builder(setter(skip), default = "Uuid::new_v4()")]
@@ -33,7 +33,7 @@ impl AthalarPartialBuilder {
     }
 }
 
-#[derive(Debug, PartialEq, Builder, Clone)]
+#[derive(Debug, PartialEq, Eq, Builder, Clone)]
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarPartialData {
     /// The type of partial
