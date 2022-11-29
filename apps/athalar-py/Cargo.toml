@@ -1,10 +1,10 @@
 [package]
-name = "athalar-py"
+name = "athalar"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "athalar_py"
+name = "athalar"
 crate-type = ["cdylib"]
 
 [dependencies]

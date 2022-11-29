@@ -1,19 +1,28 @@
+[project]
+name = "athalar"
+
 [tool.poetry]
 name = "athalar_py"
 version = "0.1.0"
-description = ""
+description = "The python CLI to generate configuration from the athalar specification"
 authors = ["Diptesh Choudhuri <ignisda2001@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-click = "^8.1.3"
+typer = { extras = ["all"], version = "^0.7.0" }
 
 [tool.poetry.group.dev.dependencies]
 maturin = "^0.14.2"
-flake8 = { version = "^6.0.0", allow-prereleases = true }
+flake8 = { version = "^6.0.0" }
 black = { version = "^22.10.0", allow-prereleases = true }
 
 [build-system]
 requires = ["maturin>=0.14,<0.15", "poetry-core"]
 build-backend = "maturin"
+
+[tool.black]
+line-length = 79
+
+[project.scripts]
+athalar = "athalar_py.cli:main"

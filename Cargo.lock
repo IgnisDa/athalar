@@ -12,6 +12,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "athalar"
+version = "0.1.0"
+dependencies = [
+ "pyo3",
+]
+
+[[package]]
 name = "athalar-js"
 version = "0.1.0"
 dependencies = [
@@ -21,13 +28,6 @@ dependencies = [
  "napi-build",
  "napi-derive",
  "strum_macros",
-]
-
-[[package]]
-name = "athalar-py"
-version = "0.1.0"
-dependencies = [
- "pyo3",
 ]
 
 [[package]]
