@@ -2,6 +2,7 @@
   "projects": {
     "athalar-js": "apps/athalar-js",
     "athalar_core": "libs/athalar-core",
+    "athalar_py": "libs/python",
     "athalar_cli": "apps/cli",
     "config": "apps/config",
     "generated": "libs/generated"

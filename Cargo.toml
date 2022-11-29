@@ -1,5 +1,5 @@
 [workspace]
-members = ["libs/athalar-core", "apps/athalar-js", "apps/cli"]
+members = ["libs/athalar-core", "libs/python", "apps/athalar-js", "apps/cli"]
 
 [profile.release]
 lto = true

@@ -1,8 +1,8 @@
 mod app;
-mod python;
 
 use crate::app::App;
 use app::Commands;
+use athalar_py::run as python_run;
 use clap::Parser;
 
 fn main() {
@@ -14,7 +14,7 @@ fn main() {
             });
             match language {
                 app::Language::Python => {
-                    python::run(&path);
+                    python_run(&path);
                 }
             }
         }
