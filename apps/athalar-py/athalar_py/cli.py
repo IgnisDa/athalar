@@ -24,7 +24,7 @@ def generate(
     path: str = typer.Argument(Path().absolute(), help=generate_help)
 ):
     """Generate the bindings for the given directory"""
-    print(athalar.sum_as_string(2, 6))
+    athalar.from_path_py(path)
     return 0
 
 

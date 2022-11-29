@@ -15,6 +15,7 @@ dependencies = [
 name = "athalar"
 version = "0.1.0"
 dependencies = [
+ "athalar_core",
  "pyo3",
 ]
 
