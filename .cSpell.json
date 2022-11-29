@@ -30,6 +30,8 @@
         "nrwl",
         "nxrs",
         "pnpm",
+        "pyfunction",
+        "pymodule",
         "rustfmt"
     ],
     // flagWords - list of words to be always considered incorrect

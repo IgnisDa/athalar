@@ -6,6 +6,11 @@
     "timonwong.shellcheck",
     "tamasfe.even-better-toml",
     "dbaeumer.vscode-eslint",
-    "rbbit.typescript-hero"
+    "rbbit.typescript-hero",
+    "lorenzopirro.rust-flash-snippets",
+    "dustypomerleau.rust-syntax",
+    "vadimcn.vscode-lldb",
+    "serayuzgur.crates",
+    "ms-python.python"
   ]
 }
