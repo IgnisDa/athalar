@@ -12,6 +12,7 @@ const PYTHON_TEMPLATE: &str = include_str!("python.tera");
 struct PropertyContext {
     name: String,
     kind: String,
+    comment: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -38,10 +39,11 @@ pub fn get_python_contents(
         context.properties.push(PropertyContext {
             name: atom.name.clone(),
             kind: AthalarPythonKind::from(atom.kind).to_string(),
+            comment: atom.description.clone(),
             // TODO: Handle validators
         })
     }
     let context = TeraContext::from_serialize(context)?;
-    let rendered = Tera::one_off(PYTHON_TEMPLATE, &context, true)?;
+    let rendered = Tera::one_off(PYTHON_TEMPLATE, &context, false)?;
     Ok(rendered)
 }
