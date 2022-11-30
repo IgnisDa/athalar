@@ -1,4 +1,5 @@
 mod class_validator;
+mod pydantic;
 
 use crate::utils::get_uuid;
 use class_validator::ClassValidatorAdapterProfile;
@@ -42,5 +43,4 @@ impl AthalarBinding {
 }
 
 pub use class_validator::ClassValidatorAdapterProfileBuilder;
-
-use self::class_validator::PydanticAdapterProfile;
+pub use pydantic::PydanticAdapterProfile;

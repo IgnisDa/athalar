@@ -69,6 +69,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "athalar_core",
+ "derive_builder",
  "strum_macros",
  "tera",
 ]

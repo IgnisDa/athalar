@@ -6,5 +6,6 @@ lto = true
 
 [workspace.dependencies]
 anyhow = "1.0.66"
+derive_builder = "0.11.2"
 strum_macros = "0.24.3"
 tera = "1.17.1"

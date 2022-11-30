@@ -12,5 +12,5 @@ pub mod reporting;
 pub use crate::atom::{AthalarAtom, AtomKind, AtomValidator};
 pub use crate::config::AthalarConfig;
 pub use crate::core::{Athalar, AthalarInformation};
-pub use binding::{AthalarAdapter, AthalarBinding};
+pub use binding::{AthalarAdapter, AthalarBinding, PydanticAdapterProfile};
 pub use utils::{from_path, FinalFile};
