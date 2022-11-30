@@ -30,6 +30,7 @@
         "nrwl",
         "nxrs",
         "pnpm",
+        "pydantic",
         "pyfunction",
         "pymodule",
         "rustfmt",

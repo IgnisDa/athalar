@@ -1,22 +1,18 @@
-mod app;
-
-use crate::app::App;
-use app::Commands;
-use athalar_py::run as python_run;
+use athalar_cli::{
+    app::{App, Commands},
+    run,
+};
 use clap::Parser;
+use std::env;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let cli = App::parse();
     match cli.command {
-        Commands::Generate { language, path } => {
-            let path = path.unwrap_or_else(|| {
-                std::env::current_dir().expect("Unable to get current directory")
-            });
-            match language {
-                app::Language::Python => {
-                    python_run(&path);
-                }
-            }
+        Commands::Generate { path } => {
+            let path = path
+                .unwrap_or_else(|| env::current_dir().expect("Unable to get current directory"));
+            run(path)?;
         }
-    }
+    };
+    Ok(())
 }

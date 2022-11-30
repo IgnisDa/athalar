@@ -1,7 +1,10 @@
-use athalar_core::from_path;
-use std::path::Path;
+mod atoms;
 
-pub fn run(path: &Path) {
-    let a = from_path(path.to_str().unwrap().to_owned());
-    dbg!(a);
+use athalar_core::{AthalarAtom, AthalarBinding};
+
+pub fn add_python_final_files(
+    binding: &AthalarBinding,
+    atoms: &Vec<AthalarAtom>,
+) -> anyhow::Result<String> {
+    Ok("".to_string())
 }

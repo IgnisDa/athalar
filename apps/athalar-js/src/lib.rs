@@ -45,7 +45,7 @@ impl AthalarJs {
     pub fn from_path(path: String) -> Result<Self> {
         from_path(path)
             .map(Self)
-            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))
+            .map_err(|e| Error::new(Status::GenericFailure, e))
     }
 
     /// Get validation reports for the project
@@ -92,12 +92,6 @@ impl AthalarJs {
         let information = self.0.get_information().unwrap();
         for (generator, atoms) in information.generators.iter() {
             for binding in generator.data.bindings.iter() {
-                // the final path where the output of this binding must be placed
-                let output = binding
-                    .output(&information.config.project_source())
-                    .into_os_string()
-                    .into_string()
-                    .unwrap();
                 let details = match &binding.profile {
                     AthalarAdapter::ClassValidator(x) => ClassValidatorProfile {
                         class_name: x
@@ -105,7 +99,14 @@ impl AthalarJs {
                             .clone()
                             .unwrap_or_else(|| DEFAULT_CLASS_NAME.to_string()),
                     },
+                    AthalarAdapter::Pydantic(_) => continue,
                 };
+                // the final path where the output of this binding must be placed
+                let output = binding
+                    .output(&information.config.project_source())
+                    .into_os_string()
+                    .into_string()
+                    .unwrap();
                 let mut _atoms = vec![];
                 for atom in atoms.iter() {
                     let mut validators = atom

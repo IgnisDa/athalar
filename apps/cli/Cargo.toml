@@ -3,10 +3,8 @@ name = "athalar_cli"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 athalar_core = { path = "../../libs/athalar-core" }
-athalar-py = { path = "../../libs/python" }
+athalar_python = { path = "../../libs/python" }
+anyhow = { workspace = true }
 clap = { version = "4.0.29", features = ["derive", "env", "wrap_help"] }
-tera = "1.17.1"

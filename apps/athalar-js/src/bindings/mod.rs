@@ -16,6 +16,7 @@ impl From<AthalarAdapter> for AthalarJsBindingType {
     fn from(aa: AthalarAdapter) -> Self {
         match aa {
             AthalarAdapter::ClassValidator(_) => Self::ClassValidator,
+            AthalarAdapter::Pydantic(_) => unimplemented!(),
         }
     }
 }

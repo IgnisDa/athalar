@@ -8,7 +8,6 @@ use crate::{
 };
 use glob::glob;
 use std::{
-    error::Error,
     fs,
     path::{Path, PathBuf, MAIN_SEPARATOR},
 };
@@ -75,19 +74,33 @@ pub fn load_generators(dir: &Path) -> Vec<AthalarGenerator> {
         .collect()
 }
 
+/// Generate a new random UUID
 pub(crate) fn get_uuid() -> Uuid {
     Uuid::new_v4()
 }
 
-pub fn from_path(path: String) -> Result<Athalar, Box<dyn Error>> {
+/// Get the configuration and all the required information about an athalar project.
+pub fn from_path(path: String) -> Result<Athalar, String> {
     let project_path = PathBuf::from(&path).join(ATHALAR_CONFIG_FILE);
     let config_file_contents = match fs::read_to_string(&project_path) {
         Ok(x) => x,
         Err(_) => {
-            return Err(format!("Config file does not exist at: {:?}", &project_path).into());
+            return Err(format!(
+                "Config file does not exist at: {:?}",
+                &project_path
+            ));
         }
     };
     let config = AthalarConfig::from_str_and_source(&config_file_contents, &path).unwrap();
     let athalar = Athalar::from_config(config);
     Ok(athalar)
+}
+
+/// The final rendered file output that should be placed in the file system.
+pub struct FinalFile {
+    /// The path where this file should be placed
+    pub path: PathBuf,
+
+    /// The contents of the file
+    pub contents: String,
 }

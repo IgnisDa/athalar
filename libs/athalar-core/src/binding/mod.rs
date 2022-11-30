@@ -11,6 +11,7 @@ use uuid::Uuid;
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
 pub enum AthalarAdapter {
     ClassValidator(ClassValidatorAdapterProfile),
+    Pydantic(PydanticAdapterProfile),
 }
 
 /// A binding is a set of configuration for a specific language.
@@ -41,3 +42,5 @@ impl AthalarBinding {
 }
 
 pub use class_validator::ClassValidatorAdapterProfileBuilder;
+
+use self::class_validator::PydanticAdapterProfile;

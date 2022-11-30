@@ -12,7 +12,7 @@ athalar_core = { path = "../../libs/athalar-core" }
 itertools = "0.10.3"
 napi = "2"
 napi-derive = "2"
-strum_macros = "0.24.3"
+strum_macros = { workspace = true }
 
 [build-dependencies]
 napi-build = "2"
