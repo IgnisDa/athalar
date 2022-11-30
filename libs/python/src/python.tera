@@ -1,5 +1,10 @@
 from pydantic import BaseModel
 
+CONFIGURATION_VARIABLES = [
+{%- for property in properties %}
+    "{{ property.name }}",
+{%- endfor %}
+]
 
 class {{ class_name }}(BaseModel):
 {%- for property in properties %}
