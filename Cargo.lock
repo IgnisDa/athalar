@@ -70,6 +70,7 @@ dependencies = [
  "anyhow",
  "athalar_core",
  "derive_builder",
+ "serde",
  "strum_macros",
  "tera",
 ]

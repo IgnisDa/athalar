@@ -1,23 +1,47 @@
 mod atoms;
-mod bindings;
 mod constants;
 
-use crate::{bindings::pydantic::PydanticProfile, constants::DEFAULT_CLASS_NAME};
+use crate::{atoms::AthalarPythonKind, constants::DEFAULT_CLASS_NAME};
 use athalar_core::{AthalarAdapter, AthalarAtom, AthalarBinding};
+use serde::{Deserialize, Serialize};
+use tera::{Context as TeraContext, Tera};
 
-pub fn add_python_final_files(
+const PYTHON_TEMPLATE: &str = include_str!("python.tera");
+
+#[derive(Debug, Serialize, Deserialize)]
+struct PropertyContext {
+    name: String,
+    kind: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Context {
+    class_name: String,
+    properties: Vec<PropertyContext>,
+}
+
+pub fn get_python_contents(
     binding: &AthalarBinding,
     atoms: &Vec<AthalarAtom>,
 ) -> anyhow::Result<String> {
-    let details = match &binding.profile {
+    let mut context = match &binding.profile {
         AthalarAdapter::ClassValidator(_) => unimplemented!(),
-        AthalarAdapter::Pydantic(x) => PydanticProfile {
+        AthalarAdapter::Pydantic(x) => Context {
             class_name: x
                 .class_name
                 .clone()
                 .unwrap_or_else(|| DEFAULT_CLASS_NAME.to_string()),
+            properties: vec![],
         },
     };
-    dbg!(&details);
-    Ok("".to_string())
+    for atom in atoms {
+        context.properties.push(PropertyContext {
+            name: atom.name.clone(),
+            kind: AthalarPythonKind::from(atom.kind).to_string(),
+            // TODO: Handle validators
+        })
+    }
+    let context = TeraContext::from_serialize(context)?;
+    let rendered = Tera::one_off(PYTHON_TEMPLATE, &context, true)?;
+    Ok(rendered)
 }

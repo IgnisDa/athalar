@@ -2,7 +2,7 @@ pub mod app;
 
 use anyhow::anyhow;
 use athalar_core::{from_path, AthalarAdapter, FinalFile};
-use athalar_python::add_python_final_files;
+use athalar_python::get_python_contents;
 use std::{fs::File, io::Write, path::PathBuf};
 
 pub fn run(path: PathBuf) -> anyhow::Result<()> {
@@ -14,7 +14,7 @@ pub fn run(path: PathBuf) -> anyhow::Result<()> {
         for binding in generator.data.bindings.iter() {
             let path = binding.output(&information.config.project_source());
             let contents = match &binding.profile {
-                AthalarAdapter::Pydantic(_a) => add_python_final_files(binding, atoms),
+                AthalarAdapter::Pydantic(_a) => get_python_contents(binding, atoms),
                 // TODO: Handle it
                 AthalarAdapter::ClassValidator(_) => continue,
             }?;

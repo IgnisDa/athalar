@@ -1,0 +1,6 @@
+from pydantic import BaseModel
+
+class {{ class_name }}(BaseModel):
+    {%- for property in properties %}
+    {{ property.name }}: {{ property.kind }}
+    {% endfor -%}
