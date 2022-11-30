@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-athalar_core = { path = "../athalar-core" }
+athalar_core = { path = "../core" }
 anyhow = { workspace = true }
 derive_builder = { workspace = true }
 serde = { workspace = true }

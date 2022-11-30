@@ -8,7 +8,7 @@ version = "0.1.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-athalar_core = { path = "../../libs/athalar-core" }
+athalar_core = { path = "../../libs/core" }
 itertools = "0.10.3"
 napi = "2"
 napi-derive = "2"
