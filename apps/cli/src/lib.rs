@@ -3,20 +3,19 @@ pub mod app;
 use anyhow::anyhow;
 use athalar_core::{from_path, AthalarAdapter, FinalFile};
 use athalar_python::get_python_contents;
+use athalar_typescript::get_typescript_contents;
 use std::{fs::File, io::Write, path::PathBuf};
 
 pub fn run(path: PathBuf) -> anyhow::Result<()> {
-    // TODO: Correct error handling
-    let athalar = from_path(path.to_str().unwrap().to_owned()).expect("msg");
+    let athalar = from_path(path.to_str().unwrap().to_owned()).map_err(|f| anyhow!(f))?;
     let information = athalar.get_information().unwrap();
     let mut final_files = vec![];
     for (generator, atoms) in information.generators.iter() {
         for binding in generator.data.bindings.iter() {
             let path = binding.output(&information.config.project_source());
             let contents = match &binding.profile {
-                AthalarAdapter::Pydantic(_a) => get_python_contents(binding, atoms),
-                // TODO: Handle it
-                AthalarAdapter::ClassValidator(_) => continue,
+                AthalarAdapter::Pydantic(_) => get_python_contents(binding, atoms),
+                AthalarAdapter::ClassValidator(_) => get_typescript_contents(binding, atoms),
             }?;
             final_files.push(FinalFile { contents, path });
         }

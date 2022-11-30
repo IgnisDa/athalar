@@ -1,0 +1,17 @@
+import { {{ all_imports | join(sep=", ") }} } from 'class-validator'
+
+const CONFIGURATION_VARIABLES = [
+{%- for property in properties %}
+    "{{ property.name }}",
+{%- endfor %}
+]
+
+export class {{ class_name }} {
+{%- for property in properties %}
+    # {{ property.comment }}
+{%- for validator in property.validators %}
+    @{{ validator}}()
+{% endfor -%}
+    {{ property.name }}: {{ property.kind }}
+{% endfor -%}
+}

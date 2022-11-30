@@ -6,5 +6,6 @@ edition = "2021"
 [dependencies]
 athalar_core = { path = "../../libs/core" }
 athalar_python = { path = "../../libs/python" }
+athalar_typescript = { path = "../../libs/typescript" }
 anyhow = { workspace = true }
 clap = { version = "4.0.29", features = ["derive", "env", "wrap_help"] }
