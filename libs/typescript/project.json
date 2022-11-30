@@ -1,0 +1,19 @@
+{
+  "projectType": "application",
+  "sourceRoot": "libs/python/src",
+  "targets": {
+    "test": {
+      "executor": "@ignisda/nx-rust:nextest",
+      "options": {}
+    },
+    "lint": {
+      "executor": "@ignisda/nx-rust:clippy",
+      "options": {
+        "fix": false,
+        "failOnWarnings": false,
+        "noDeps": true
+      }
+    }
+  },
+  "tags": []
+}

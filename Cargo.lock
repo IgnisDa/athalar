@@ -45,6 +45,7 @@ dependencies = [
  "anyhow",
  "athalar_core",
  "athalar_python",
+ "athalar_typescript",
  "clap",
 ]
 
@@ -65,6 +66,18 @@ dependencies = [
 
 [[package]]
 name = "athalar_python"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "athalar_core",
+ "derive_builder",
+ "serde",
+ "strum_macros",
+ "tera",
+]
+
+[[package]]
+name = "athalar_typescript"
 version = "0.1.0"
 dependencies = [
  "anyhow",
