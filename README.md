@@ -26,8 +26,10 @@ Lets consider the following mappings:
 # backend.ath.yaml
 bindings:
   - output: ../../libs/generated/src/backend.ts
-    profile: !ClassValidator
-      class_name: ApplicationConfig
+    profile: !ClassValidator {}
+  - output: ../../libs/generated/src/backend.py
+    profile: !Pydantic
+      class_name: ProjectConfig
 
 config:
   - !IncludePartial mail
@@ -42,7 +44,8 @@ config:
       - !Port
   - name: MAIL_HOST
     description: The hostname where the email server is listening at
-    kind: !String
+    kind:
+      - !String
 ```
 
 Calling the Athalar CLI will get the following configuration auto-magically generated:
@@ -64,6 +67,20 @@ export class ApplicationConfig {
 }
 ```
 
+```python
+# some/path/generated/backend.py
+from pydantic import BaseModel
+
+CONFIGURATION_VARIABLES = ["MAIL_PORT", "MAIL_HOST"]
+
+class ProjectConfig(BaseModel):
+    # The port at which the mail server is listening at
+    MAIL_PORT: int
+
+    # The hostname where the email server is listening at
+    MAIL_HOST: str
+```
+
 Take a look at the [config](./apps/config) directory for a more complete example.
 
 ## Usage
@@ -82,9 +99,10 @@ A generator is what ends up being translated to code. Each generator consists of
 one "binding" and one "config". A "binding" defines how the final code should be adapted. A
 "config" specifies what all variables should be specified in the output.
 
-The [example](#example) generator (`backend.ath.yaml`) defines one binding. It uses the
-[`ClassValidator`](./apps/athalar-js/) profile, specifies where the final output should be
-written, and changes the name of the class generated to `ApplicationConfig`.
+The [example](#example) generator (`backend.ath.yaml`) defines two binding. It uses the
+[`Pydantic`](./apps/cli) profile, specifies where the final output should be written, and
+changes the name of the class generated to `ProjectConfig` (from the default of
+`ApplicationConfig`).
 
 #### partial(s)
 
@@ -120,6 +138,7 @@ language bindings to generate the final configurations.
 | Language                        | Available bindings |
 | ------------------------------- | ------------------ |
 | [Typescript](./apps/athalar-js) | Class Validator    |
+| [Python](./apps/cli)            | Pydantic           |
 
 More information about the generators can be found in their specific projects.
 

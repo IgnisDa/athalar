@@ -1,0 +1,23 @@
+{
+  "projectType": "application",
+  "sourceRoot": "apps/cli/src",
+  "targets": {
+    "build": {
+      "executor": "@ignisda/nx-rust:build",
+      "options": {}
+    },
+    "test": {
+      "executor": "@ignisda/nx-rust:nextest",
+      "options": {}
+    },
+    "lint": {
+      "executor": "@ignisda/nx-rust:clippy",
+      "options": {
+        "fix": false,
+        "failOnWarnings": false,
+        "noDeps": true
+      }
+    }
+  },
+  "tags": []
+}

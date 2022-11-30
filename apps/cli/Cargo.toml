@@ -1,0 +1,10 @@
+[package]
+name = "athalar_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+athalar_core = { path = "../../libs/core" }
+athalar_python = { path = "../../libs/python" }
+anyhow = { workspace = true }
+clap = { version = "4.0.29", features = ["derive", "env", "wrap_help"] }

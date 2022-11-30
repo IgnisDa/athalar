@@ -1,20 +1,20 @@
-use derive_builder::{self, Builder};
+use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use std::{error::Error, path::PathBuf};
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub enum AthalarConfigKind {
     Variable,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub enum AthalarConfigVersion {
     #[serde(rename = "1")]
     One,
 }
 
 /// The container for configuring the Athalar instance.
-#[derive(Debug, PartialEq, Builder, Clone)]
+#[derive(Debug, PartialEq, Eq, Builder, Clone)]
 #[builder(derive(Debug, Serialize, Deserialize))]
 pub struct AthalarConfig {
     version: AthalarConfigVersion,

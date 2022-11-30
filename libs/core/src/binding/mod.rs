@@ -1,4 +1,5 @@
 mod class_validator;
+mod pydantic;
 
 use crate::utils::get_uuid;
 use class_validator::ClassValidatorAdapterProfile;
@@ -11,6 +12,7 @@ use uuid::Uuid;
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
 pub enum AthalarAdapter {
     ClassValidator(ClassValidatorAdapterProfile),
+    Pydantic(PydanticAdapterProfile),
 }
 
 /// A binding is a set of configuration for a specific language.
@@ -41,3 +43,4 @@ impl AthalarBinding {
 }
 
 pub use class_validator::ClassValidatorAdapterProfileBuilder;
+pub use pydantic::PydanticAdapterProfile;

@@ -2,6 +2,9 @@ bindings:
   - output: ../../libs/generated/src/backend.ts
     profile: !ClassValidator
       class_name: ApplicationConfig
+  - output: ../../libs/generated/src/backend.py
+    profile: !Pydantic
+      class_name: ProjectConfig
 
 config:
   - !IncludePartial mail

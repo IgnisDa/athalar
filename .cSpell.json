@@ -16,6 +16,7 @@
         "cmds",
         "commitlint",
         "elif",
+        "endfor",
         "execa",
         "gnueabihf",
         "hashbag",
@@ -30,7 +31,12 @@
         "nrwl",
         "nxrs",
         "pnpm",
-        "rustfmt"
+        "pydantic",
+        "pyfunction",
+        "pymodule",
+        "rustfmt",
+        "tera",
+        "typer"
     ],
     // flagWords - list of words to be always considered incorrect
     // This is useful for offensive words and common spelling errors.

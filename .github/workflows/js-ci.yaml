@@ -10,7 +10,6 @@ on:
       - main
     tags-ignore:
       - '**'
-  pull_request: null
 
 jobs:
   lint:
