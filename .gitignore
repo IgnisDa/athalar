@@ -45,3 +45,6 @@ Thumbs.db
 # athalar-js
 apps/athalar-js/index.js
 apps/athalar-js/index.d.ts
+
+# fixture generated
+tests/fixtures/generated

@@ -3,9 +3,7 @@
     "athalar-js": "apps/athalar-js",
     "athalar_core": "libs/core",
     "athalar_py": "libs/python",
-    "athalar_cli": "apps/cli",
-    "config": "apps/config",
-    "generated": "libs/generated"
+    "athalar_cli": "apps/cli"
   },
   "dependencies": {
     "required": [],
