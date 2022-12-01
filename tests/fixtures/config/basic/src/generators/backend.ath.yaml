@@ -1,8 +1,8 @@
 bindings:
-  - output: ../../../generated/src/backend.ts
+  - output: ../../generated/backend.ts
     profile: !ClassValidator
       class_name: ApplicationConfig
-  - output: ../../../generated/src/backend.py
+  - output: ../../generated/backend.py
     profile: !Pydantic
       class_name: ProjectConfig
 
