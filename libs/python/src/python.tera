@@ -1,3 +1,6 @@
+# -----------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# -----------------------------------------------------
 from pydantic import BaseModel
 
 CONFIGURATION_VARIABLES = [
@@ -5,6 +8,7 @@ CONFIGURATION_VARIABLES = [
     "{{ property.name }}",
 {%- endfor %}
 ]
+
 
 class {{ class_name }}(BaseModel):
 {%- for property in properties %}
