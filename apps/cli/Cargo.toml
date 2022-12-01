@@ -8,3 +8,5 @@ athalar_core = { path = "../../libs/core" }
 athalar_python = { path = "../../libs/python" }
 anyhow = { workspace = true }
 clap = { version = "4.0.29", features = ["derive", "env", "wrap_help"] }
+log = "0.4.17"
+pretty_env_logger = "0.4.0"

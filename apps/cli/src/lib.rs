@@ -3,6 +3,7 @@ pub mod app;
 use anyhow::anyhow;
 use athalar_core::{from_path, AthalarAdapter, FinalFile};
 use athalar_python::get_python_contents;
+use log::info;
 use std::{fs::File, io::Write, path::PathBuf};
 
 pub fn run(path: PathBuf) -> anyhow::Result<()> {
@@ -22,6 +23,10 @@ pub fn run(path: PathBuf) -> anyhow::Result<()> {
         }
     }
     for final_file in final_files {
+        info!(
+            "Writing file: {}",
+            final_file.path.as_os_str().to_str().unwrap()
+        );
         File::create(final_file.path)
             .map_err(|_| anyhow!("Unable to create file"))?
             .write_all(final_file.contents.as_bytes())
