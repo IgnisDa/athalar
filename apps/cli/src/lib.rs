@@ -24,7 +24,7 @@ pub fn run(path: PathBuf) -> anyhow::Result<()> {
     }
     for final_file in final_files {
         info!(
-            "Writing file: {}",
+            "Processing binding for: {:?}",
             final_file.path.as_os_str().to_str().unwrap()
         );
         File::create(final_file.path)

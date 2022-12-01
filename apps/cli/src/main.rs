@@ -15,8 +15,9 @@ fn main() -> anyhow::Result<()> {
     match cli.command {
         Commands::Generate { path } => {
             let path = path.unwrap_or_else(|| {
-                info!("No path provided, using current directory...");
-                env::current_dir().expect("Unable to get current directory")
+                let cur_dir = env::current_dir().expect("Unable to get current directory");
+                info!("No path provided, using: {:?}", cur_dir);
+                cur_dir
             });
             run(path)?;
         }
