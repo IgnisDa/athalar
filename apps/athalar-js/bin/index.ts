@@ -51,7 +51,6 @@ const generateCommand = command({
       }
       for (const file of project.getSourceFiles()) {
         file.formatText();
-        console.log(file.getFullText());
         await file.save();
       }
     } catch (e: any) {
